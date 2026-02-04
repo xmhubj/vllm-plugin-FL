@@ -1,0 +1,35 @@
+# PR Labeler 配置文件
+# 根据修改的文件路径自动添加标签
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.md'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**/*'
+          - '.pre-commit-config.yaml'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file: 'tests/**/*'
+
+core:
+  - changed-files:
+      - any-glob-to-any-file: 'vllm_fl/**/*'
+
+examples:
+  - changed-files:
+      - any-glob-to-any-file: 'examples/**/*'
+
+benchmarks:
+  - changed-files:
+      - any-glob-to-any-file: 'benchmarks/**/*'
+
+build:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'setup.py'
+          - 'requirements*.txt'
+          - 'pyproject.toml'
