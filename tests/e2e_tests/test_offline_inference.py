@@ -4,7 +4,7 @@ import os
 import pytest
 import vllm  # noqa: F401
 from conftest import VllmRunner
-import vllm_flagos
+import vllm_fl  # noqa: F401
 
 MODELS = [
     # "Qwen/Qwen3-0.6B",
