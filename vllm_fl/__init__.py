@@ -9,6 +9,13 @@ from vllm_fl.utils import get_op_config as _get_op_config
 logger = logging.getLogger(__name__)
 
 
+def __getattr__(name):
+    if name == "distributed":
+        from vllm_fl import distributed
+        return distributed
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 def register():
     """Register the FL platform."""
 
