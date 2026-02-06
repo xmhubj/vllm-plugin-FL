@@ -2,123 +2,97 @@
 
 """
 Tests for flagcx communicator module.
+
+Note: Most tests require FLAGCX_PATH environment variable to be set.
+Tests are skipped if flagcx is not available.
 """
 
+import os
 import pytest
 import torch
-from unittest.mock import patch, MagicMock
+
+
+def has_flagcx():
+    """Check if flagcx is available."""
+    flagcx_path = os.getenv('FLAGCX_PATH')
+    if not flagcx_path:
+        return False
+    lib_path = os.path.join(flagcx_path, "build/lib/libflagcx.so")
+    return os.path.exists(lib_path)
+
+
+# Mark all tests in this module as requiring flagcx
+pytestmark = pytest.mark.skipif(
+    not has_flagcx(),
+    reason="FLAGCX_PATH not set or flagcx library not found"
+)
 
 
 class TestPyFlagcxCommunicator:
     """Test PyFlagcxCommunicator class."""
 
-    @pytest.fixture
-    def mock_flagcx_library(self):
-        """Mock the FLAGCXLibrary."""
-        with patch(
-            "vllm_fl.distributed.device_communicators.flagcx.FLAGCXLibrary"
-        ) as mock:
-            yield mock
+    def test_import(self):
+        """Test that the module can be imported when flagcx is available."""
+        from vllm_fl.distributed.device_communicators.flagcx import PyFlagcxCommunicator
+        assert PyFlagcxCommunicator is not None
 
-    def test_world_size_one_disabled(self):
-        """Test that communicator is disabled for world_size=1."""
-        # When world_size is 1, the communicator should be disabled
-        mock_group = MagicMock()
-        mock_group.rank = 0
-        mock_group.world_size = 1
+    def test_class_has_required_methods(self):
+        """Test that PyFlagcxCommunicator has all required methods."""
+        from vllm_fl.distributed.device_communicators.flagcx import PyFlagcxCommunicator
 
-        # Create a mock communicator with world_size=1
-        comm = MagicMock()
-        comm.world_size = 1
-        comm.available = False
-        comm.disabled = True
+        required_methods = [
+            'all_reduce',
+            'all_gather',
+            'reduce_scatter',
+            'send',
+            'recv',
+            'broadcast',
+            'group_start',
+            'group_end',
+        ]
 
-        assert comm.disabled is True
-        assert comm.available is False
-
-    def test_all_reduce_disabled_returns_none(self):
-        """Test that all_reduce returns None when disabled."""
-        comm = MagicMock()
-        comm.disabled = True
-
-        # Simulate the actual behavior
-        def mock_all_reduce(tensor, out_tensor=None, op=None, stream=None):
-            if comm.disabled:
-                return None
-            return torch.empty_like(tensor)
-
-        comm.all_reduce = mock_all_reduce
-        result = comm.all_reduce(torch.randn(2, 4))
-        assert result is None
-
-    def test_send_disabled_early_return(self):
-        """Test that send returns early when disabled."""
-        comm = MagicMock()
-        comm.disabled = True
-
-        call_count = [0]
-
-        def mock_send(tensor, dst, stream=None):
-            if comm.disabled:
-                return
-            call_count[0] += 1
-
-        comm.send = mock_send
-        comm.send(torch.randn(2, 4), dst=1)
-
-        # Should return early without doing anything
-        assert call_count[0] == 0
-
-    def test_recv_disabled_early_return(self):
-        """Test that recv returns early when disabled."""
-        comm = MagicMock()
-        comm.disabled = True
-
-        call_count = [0]
-
-        def mock_recv(tensor, src, stream=None):
-            if comm.disabled:
-                return
-            call_count[0] += 1
-
-        comm.recv = mock_recv
-        comm.recv(torch.randn(2, 4), src=0)
-
-        # Should return early without doing anything
-        assert call_count[0] == 0
-
-    def test_reduce_scatter_disabled_early_return(self):
-        """Test that reduce_scatter returns early when disabled."""
-        comm = MagicMock()
-        comm.disabled = True
-
-        call_count = [0]
-
-        def mock_reduce_scatter(output_tensor, input_tensor, op=None, stream=None):
-            if comm.disabled:
-                return
-            call_count[0] += 1
-
-        comm.reduce_scatter = mock_reduce_scatter
-        comm.reduce_scatter(torch.randn(2, 4), torch.randn(4, 4))
-
-        assert call_count[0] == 0
+        for method in required_methods:
+            assert hasattr(PyFlagcxCommunicator, method), f"Missing method: {method}"
 
 
 class TestFlagcxDataTypes:
-    """Test flagcx data type mappings."""
+    """Test flagcx data type related functionality."""
 
-    def test_torch_dtype_mapping_concept(self):
-        """Test the concept of torch dtype to flagcx dtype mapping."""
-        dtype_map = {
-            torch.float32: "FLOAT",
-            torch.float16: "HALF",
-            torch.bfloat16: "BFLOAT16",
-            torch.int32: "INT32",
-            torch.int64: "INT64",
-        }
+    def test_flagcx_dtype_enum_import(self):
+        """Test that flagcxDataTypeEnum can be imported."""
+        from plugin.interservice.flagcx_wrapper import flagcxDataTypeEnum
+        assert flagcxDataTypeEnum is not None
 
-        # Verify common dtypes are mappable
-        for torch_dtype, flagcx_name in dtype_map.items():
-            assert torch_dtype is not None
-            assert isinstance(flagcx_name, str)
+    def test_flagcx_dtype_from_torch(self):
+        """Test torch dtype to flagcx dtype conversion."""
+        from plugin.interservice.flagcx_wrapper import flagcxDataTypeEnum
+
+        # Test common dtypes
+        test_dtypes = [
+            torch.float32,
+            torch.float16,
+            torch.bfloat16,
+        ]
+
+        for dtype in test_dtypes:
+            # Should not raise
+            result = flagcxDataTypeEnum.from_torch(dtype)
+            assert result is not None
+
+
+class TestFlagcxReduceOps:
+    """Test flagcx reduce operation types."""
+
+    def test_flagcx_reduce_op_enum_import(self):
+        """Test that flagcxRedOpTypeEnum can be imported."""
+        from plugin.interservice.flagcx_wrapper import flagcxRedOpTypeEnum
+        assert flagcxRedOpTypeEnum is not None
+
+    def test_flagcx_reduce_op_from_torch(self):
+        """Test torch ReduceOp to flagcx reduce op conversion."""
+        from plugin.interservice.flagcx_wrapper import flagcxRedOpTypeEnum
+        from torch.distributed import ReduceOp
+
+        # Test SUM operation
+        result = flagcxRedOpTypeEnum.from_torch(ReduceOp.SUM)
+        assert result is not None

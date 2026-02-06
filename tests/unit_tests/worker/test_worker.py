@@ -2,24 +2,45 @@
 
 """
 Tests for worker module.
+
+Note: These tests require vllm >= 0.13.0 with profiler support.
 """
 
 import pytest
 from unittest.mock import patch, MagicMock
 
 
+def has_vllm_profiler():
+    """Check if vllm profiler is available."""
+    try:
+        from vllm.profiler.wrapper import TorchProfilerWrapper
+        return True
+    except ImportError:
+        return False
+
+
+# Skip all tests if vllm profiler is not available
+pytestmark = pytest.mark.skipif(
+    not has_vllm_profiler(),
+    reason="vllm.profiler.wrapper not available (requires vllm >= 0.13.0)"
+)
+
+
 class TestWorkerFL:
     """Test WorkerFL class."""
 
     def test_import(self):
+        """Test that WorkerFL can be imported."""
         from vllm_fl.worker.worker import WorkerFL
         assert WorkerFL is not None
 
     def test_memory_snapshot_import(self):
+        """Test that MemorySnapshot can be imported."""
         from vllm_fl.worker.worker import MemorySnapshot
         assert MemorySnapshot is not None
 
     def test_memory_profiling_result_import(self):
+        """Test that MemoryProfilingResult can be imported."""
         from vllm_fl.worker.worker import MemoryProfilingResult
         assert MemoryProfilingResult is not None
 
@@ -28,6 +49,7 @@ class TestMemorySnapshot:
     """Test MemorySnapshot dataclass."""
 
     def test_default_values(self):
+        """Test that MemorySnapshot has correct default values."""
         from vllm_fl.worker.worker import MemorySnapshot
 
         # Create with auto_measure=False to avoid actual GPU calls
@@ -41,6 +63,7 @@ class TestMemorySnapshot:
         assert snapshot.non_torch_memory == 0
 
     def test_subtraction(self):
+        """Test MemorySnapshot subtraction operator."""
         from vllm_fl.worker.worker import MemorySnapshot
 
         snapshot1 = MemorySnapshot(auto_measure=False)
@@ -74,6 +97,7 @@ class TestMemoryProfilingResult:
     """Test MemoryProfilingResult dataclass."""
 
     def test_default_values(self):
+        """Test that MemoryProfilingResult has correct default values."""
         from vllm_fl.worker.worker import MemoryProfilingResult
 
         result = MemoryProfilingResult()
@@ -85,7 +109,8 @@ class TestMemoryProfilingResult:
         assert result.profile_time == 0.0
 
     def test_before_profile_defaults(self):
-        from vllm_fl.worker.worker import MemoryProfilingResult, MemorySnapshot
+        """Test that MemoryProfilingResult creates default snapshots."""
+        from vllm_fl.worker.worker import MemoryProfilingResult
 
         result = MemoryProfilingResult()
 
@@ -98,5 +123,11 @@ class TestInitWorkerDistributedEnvironment:
     """Test init_worker_distributed_environment function."""
 
     def test_import(self):
+        """Test that init_worker_distributed_environment can be imported."""
         from vllm_fl.worker.worker import init_worker_distributed_environment
         assert init_worker_distributed_environment is not None
+
+    def test_is_callable(self):
+        """Test that init_worker_distributed_environment is callable."""
+        from vllm_fl.worker.worker import init_worker_distributed_environment
+        assert callable(init_worker_distributed_environment)

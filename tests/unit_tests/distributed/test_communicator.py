@@ -4,69 +4,73 @@
 Tests for distributed communicator module.
 """
 
+import os
 import pytest
 import torch
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import MagicMock
+
+
+def has_flagcx():
+    """Check if flagcx is available."""
+    flagcx_path = os.getenv('FLAGCX_PATH')
+    if not flagcx_path:
+        return False
+    lib_path = os.path.join(flagcx_path, "build/lib/libflagcx.so")
+    return os.path.exists(lib_path)
+
+
+# Skip all tests if flagcx is not available (communicator depends on it)
+pytestmark = pytest.mark.skipif(
+    not has_flagcx(),
+    reason="FLAGCX_PATH not set or flagcx library not found"
+)
 
 
 class TestCommunicatorFL:
-    @pytest.fixture
-    def mock_pyflagcx(self):
-        with patch("vllm_fl.distributed.communicator.PyFlagcxCommunicator") as mock:
-            yield mock
-
-    @pytest.fixture
-    def mock_base_communicator(self):
-        with patch(
-            "vllm_fl.distributed.communicator.DeviceCommunicatorBase.__init__"
-        ) as mock:
-            mock.return_value = None
-            yield mock
+    """Test CommunicatorFL class."""
 
     def test_import(self):
+        """Test that CommunicatorFL can be imported."""
         from vllm_fl.distributed.communicator import CommunicatorFL
         assert CommunicatorFL is not None
 
-    def test_init_single_worker_no_pyflagcx(self, mock_base_communicator, mock_pyflagcx):
+    def test_class_inherits_from_base(self):
+        """Test that CommunicatorFL inherits from DeviceCommunicatorBase."""
+        from vllm_fl.distributed.communicator import CommunicatorFL
+        from vllm.distributed.device_communicators.base_device_communicator import (
+            DeviceCommunicatorBase
+        )
+        assert issubclass(CommunicatorFL, DeviceCommunicatorBase)
+
+    def test_class_has_required_methods(self):
+        """Test that CommunicatorFL has all required methods."""
         from vllm_fl.distributed.communicator import CommunicatorFL
 
-        # Mock the base class attributes
-        with patch.object(CommunicatorFL, "world_size", new_callable=PropertyMock) as mock_ws:
-            mock_ws.return_value = 1
+        required_methods = [
+            'all_reduce',
+            'reduce_scatter',
+            'send',
+            'recv',
+            'destroy',
+        ]
 
-            with patch.object(CommunicatorFL, "use_all2all", new_callable=PropertyMock) as mock_a2a:
-                mock_a2a.return_value = False
+        for method in required_methods:
+            assert hasattr(CommunicatorFL, method), f"Missing method: {method}"
 
-                cpu_group = MagicMock()
-                device = torch.device("cpu")
+    def test_instance_attributes_single_worker(self):
+        """Test instance attributes for single worker scenario."""
+        from vllm_fl.distributed.communicator import CommunicatorFL
 
-                comm = CommunicatorFL.__new__(CommunicatorFL)
-                comm.world_size = 1
-                comm.use_all2all = False
-                comm.cpu_group = cpu_group
-                comm.device = device
-                comm.pyflagcx_comm = None
+        # Create instance without calling __init__ to test attribute access
+        comm = CommunicatorFL.__new__(CommunicatorFL)
 
-                # Single worker should not create pyflagcx communicator
-                assert comm.pyflagcx_comm is None
+        # Manually set attributes that would be set by parent class
+        comm.world_size = 1
+        comm.use_all2all = False
+        comm.cpu_group = MagicMock()
+        comm.device = torch.device("cpu")
+        comm.pyflagcx_comm = None
 
-
-class TestPyFlagcxCommunicator:
-    def test_import(self):
-        # Test that the module can be imported (may fail if flagcx not available)
-        try:
-            from vllm_fl.distributed.device_communicators.flagcx import PyFlagcxCommunicator
-            assert PyFlagcxCommunicator is not None
-        except ImportError:
-            pytest.skip("flagcx not available")
-
-    def test_disabled_communicator_returns_none(self):
-        """Test that disabled communicator methods return None/early exit."""
-        # Create a mock disabled communicator
-        mock_comm = MagicMock()
-        mock_comm.disabled = True
-        mock_comm.all_reduce.return_value = None
-
-        # When disabled, all_reduce should return None
-        result = mock_comm.all_reduce(torch.randn(2, 4))
-        assert result is None
+        # Verify attributes
+        assert comm.world_size == 1
+        assert comm.pyflagcx_comm is None

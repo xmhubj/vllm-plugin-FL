@@ -6,7 +6,7 @@ Tests for dispatch discovery module.
 
 import os
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, NonCallableMagicMock
 
 from vllm_fl.dispatch.discovery import (
     discover_plugins,
@@ -30,7 +30,7 @@ class TestCallRegisterFunction:
 
     def test_module_with_register_function(self):
         registry = MagicMock()
-        module = MagicMock()
+        module = NonCallableMagicMock(spec=["register"])  # Only has register attr
         module.register = MagicMock()
 
         result = _call_register_function(module, registry, "test")
@@ -40,7 +40,7 @@ class TestCallRegisterFunction:
 
     def test_module_with_vllm_fl_register(self):
         registry = MagicMock()
-        module = MagicMock(spec=["vllm_fl_register"])
+        module = NonCallableMagicMock(spec=["vllm_fl_register"])  # Only has vllm_fl_register attr
         module.vllm_fl_register = MagicMock()
 
         result = _call_register_function(module, registry, "test")
@@ -58,7 +58,7 @@ class TestCallRegisterFunction:
 
     def test_no_register_function(self):
         registry = MagicMock()
-        module = MagicMock(spec=[])  # No register function
+        module = NonCallableMagicMock(spec=[])  # Not callable, no register function
 
         result = _call_register_function(module, registry, "test")
 
