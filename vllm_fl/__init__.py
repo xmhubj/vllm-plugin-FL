@@ -11,8 +11,10 @@ logger = logging.getLogger(__name__)
 
 def __getattr__(name):
     if name == "distributed":
-        from vllm_fl import distributed
-        return distributed
+        import importlib
+        module = importlib.import_module(f".{name}", __name__)
+        globals()[name] = module
+        return module
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
