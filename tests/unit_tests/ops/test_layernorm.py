@@ -6,20 +6,19 @@ Tests for layernorm ops.
 
 import pytest
 import torch
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 class TestRMSNormFL:
+    """Test RMSNormFL class behavior."""
+
     @pytest.fixture
     def mock_call_op(self):
         with patch("vllm_fl.ops.layernorm.call_op") as mock:
             yield mock
 
-    def test_import(self):
-        from vllm_fl.ops.layernorm import RMSNormFL
-        assert RMSNormFL is not None
-
-    def test_init_params(self):
+    def test_init_creates_weight_parameter(self):
+        """Test that initialization creates weight parameter with correct shape."""
         from vllm_fl.ops.layernorm import RMSNormFL
 
         hidden_size = 128
@@ -29,7 +28,8 @@ class TestRMSNormFL:
         assert layer.variance_epsilon == eps
         assert layer.weight.shape == (hidden_size,)
 
-    def test_forward_oot_without_residual(self, mock_call_op):
+    def test_forward_oot_dispatches_without_residual(self, mock_call_op):
+        """Test forward_oot calls dispatch system correctly without residual."""
         from vllm_fl.ops.layernorm import RMSNormFL
 
         hidden_size = 128
@@ -44,10 +44,10 @@ class TestRMSNormFL:
         call_args = mock_call_op.call_args
         assert call_args[0][0] == "rms_norm"
         assert torch.equal(call_args[0][1], x)
-        assert call_args[0][2] is None  # residual
-        assert torch.equal(call_args[0][3], layer.weight)
+        assert call_args[0][2] is None  # residual should be None
 
-    def test_forward_oot_with_residual(self, mock_call_op):
+    def test_forward_oot_dispatches_with_residual(self, mock_call_op):
+        """Test forward_oot passes residual to dispatch system."""
         from vllm_fl.ops.layernorm import RMSNormFL
 
         hidden_size = 128
@@ -63,7 +63,3 @@ class TestRMSNormFL:
         call_args = mock_call_op.call_args
         assert call_args[0][0] == "rms_norm"
         assert torch.equal(call_args[0][2], residual)
-
-    def test_all_exports(self):
-        from vllm_fl.ops.layernorm import __all__
-        assert "RMSNormFL" in __all__

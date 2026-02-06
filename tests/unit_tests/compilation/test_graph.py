@@ -5,24 +5,7 @@ Tests for compilation graph module.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
-from dataclasses import dataclass
-
-
-class TestGraphClasses:
-    """Test graph-related classes."""
-
-    def test_graph_entry_import(self):
-        from vllm_fl.compilation.graph import GraphEntry
-        assert GraphEntry is not None
-
-    def test_graph_options_import(self):
-        from vllm_fl.compilation.graph import GraphOptions
-        assert GraphOptions is not None
-
-    def test_graph_wrapper_import(self):
-        from vllm_fl.compilation.graph import GraphWrapper
-        assert GraphWrapper is not None
+from unittest.mock import MagicMock
 
 
 class TestGraphOptions:
@@ -57,7 +40,6 @@ class TestGraphEntry:
     def test_default_values(self):
         from vllm_fl.compilation.graph import GraphEntry
 
-        # Create a mock BatchDescriptor
         mock_batch_desc = MagicMock()
 
         entry = GraphEntry(batch_descriptor=mock_batch_desc)
@@ -66,11 +48,3 @@ class TestGraphEntry:
         assert entry.graph is None
         assert entry.output is None
         assert entry.input_addresses is None
-
-
-class TestWeakRefTensors:
-    """Test weak_ref_tensors function."""
-
-    def test_import(self):
-        from vllm_fl.compilation.graph import weak_ref_tensors
-        assert weak_ref_tensors is not None
