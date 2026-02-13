@@ -9,7 +9,6 @@ by comparing against reference PyTorch implementations.
 import pytest
 import torch
 import torch.nn.functional as F
-from typing import Tuple
 
 
 # Skip all tests in this module if GPU not available
@@ -205,7 +204,7 @@ class TestRotaryEmbeddingCorrectness:
         sin: torch.Tensor,
         positions: torch.Tensor,
         rotary_interleaved: bool = False,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Reference implementation of rotary embedding."""
 
         def rotate_half(x: torch.Tensor) -> torch.Tensor:

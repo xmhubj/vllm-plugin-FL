@@ -26,7 +26,7 @@ import subprocess
 import sys
 import yaml
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import vllm_fl.envs as fl_envs
 from vllm_fl.utils import OOT_OP_NAMES
@@ -50,8 +50,8 @@ def _str_to_bool(value: str) -> bool:
     return value.lower() in ("1", "true")
 
 
-def _strip_background_args(argv: List[str]) -> List[str]:
-    cleaned: List[str] = []
+def _strip_background_args(argv: list[str]) -> list[str]:
+    cleaned: list[str] = []
     skip_next = False
     for i, arg in enumerate(argv):
         if skip_next:
@@ -67,7 +67,7 @@ def _strip_background_args(argv: List[str]) -> List[str]:
     return cleaned
 
 
-def extract_gems_ops_from_enable_log(log_path: str) -> List[str]:
+def extract_gems_ops_from_enable_log(log_path: str) -> list[str]:
     """
     Extract FlagGems op names from enable log. One pattern: last dotted segment
     before ': GEMS'. E.g. flag_gems.ops.fill.fill_tensor_: GEMS xxx ->
@@ -91,7 +91,7 @@ def extract_gems_ops_from_enable_log(log_path: str) -> List[str]:
     return sorted(ops)
 
 
-def get_registered_ops_by_backend() -> Dict[str, List[str]]:
+def get_registered_ops_by_backend() -> dict[str, list[str]]:
     """
     Get registered operator lists for FlagOS (DEFAULT), vendor, and reference.
 
@@ -128,7 +128,7 @@ def get_registered_ops_by_backend() -> Dict[str, List[str]]:
     }
 
 
-def get_all_tunable_ops() -> Tuple[List[str], Dict[str, List[str]]]:
+def get_all_tunable_ops() -> tuple[list[str], dict[str, list[str]]]:
     """
     Get all tunable operators and their categories.
 
@@ -143,8 +143,8 @@ def get_all_tunable_ops() -> Tuple[List[str], Dict[str, List[str]]]:
     """
     from vllm_fl.utils import get_flaggems_all_ops
 
-    all_ops: List[str] = []
-    op_categories: Dict[str, List[str]] = {}
+    all_ops: list[str] = []
+    op_categories: dict[str, list[str]] = {}
 
     # Get FlagGems all_ops
     try:
@@ -205,7 +205,7 @@ def is_oot_op(op_name: str) -> bool:
     return op_name in OOT_OP_NAMES
 
 
-def load_auto_tune_config() -> Tuple[bool, Optional[Dict[str, Any]], Optional[str]]:
+def load_auto_tune_config() -> tuple[bool, Optional[dict[str, Any]], Optional[str]]:
     config_path = os.environ.get("VLLM_FL_CONFIG", "").strip()
     if not config_path:
         return False, None, None
@@ -225,11 +225,11 @@ def load_auto_tune_config() -> Tuple[bool, Optional[Dict[str, Any]], Optional[st
 
 def write_auto_tune_ops_file(
     file_path: str,
-    ops: List[str],
-    op_categories: Dict[str, List[str]],
+    ops: list[str],
+    op_categories: dict[str, list[str]],
 ) -> None:
     default_order = ["flagos", "vendor", "reference"]
-    op_backends: Dict[str, List[str]] = {}
+    op_backends: dict[str, list[str]] = {}
     for op in ops:
         backends = op_categories.get(op)
         if backends:
@@ -237,7 +237,7 @@ def write_auto_tune_ops_file(
         else:
             op_backends[op] = default_order.copy()
 
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "action": "auto_tune",
         "op_backends": op_backends,
     }
@@ -248,14 +248,14 @@ def write_auto_tune_ops_file(
 
 def write_round_config(
     file_path: str,
-    payload: Optional[Dict[str, Any]] = None,
+    payload: Optional[dict[str, Any]] = None,
 ) -> None:
     payload = payload or {}
     with open(file_path, "w", encoding="utf-8") as f:
         yaml.safe_dump(payload, f, sort_keys=False, allow_unicode=False)
 
 
-def write_best_config(file_path: str, op_backends: Dict[str, List[str]]) -> None:
+def write_best_config(file_path: str, op_backends: dict[str, list[str]]) -> None:
     payload = {"op_backends": op_backends}
     write_round_config(file_path, payload)
     logger.info("Best config written to: %s", file_path)
@@ -305,7 +305,7 @@ def ensure_log_dir(log_file: str) -> None:
     os.makedirs(os.path.dirname(log_file) or ".", exist_ok=True)
 
 
-def build_bench_cmd(throughput_args: List[str]) -> List[str]:
+def build_bench_cmd(throughput_args: list[str]) -> list[str]:
     cmd = [
         "vllm",
         "bench",
@@ -315,7 +315,7 @@ def build_bench_cmd(throughput_args: List[str]) -> List[str]:
     return cmd
 
 
-def _run_and_stream_to_file(cmd: List[str], log_file: str, env: dict) -> int:
+def _run_and_stream_to_file(cmd: list[str], log_file: str, env: dict) -> int:
     """
     Run a command and stream stdout/stderr to both console and log_file in real
     time (append).
@@ -340,7 +340,7 @@ def _run_and_stream_to_file(cmd: List[str], log_file: str, env: dict) -> int:
         return proc.wait()
 
 
-def extract_throughput(log_text: str) -> Optional[Tuple[float, float]]:
+def extract_throughput(log_text: str) -> Optional[tuple[float, float]]:
     """
     Extract total and output token throughput (tok/s) from vllm bench log text.
     Returns (total_throughput, output_throughput) or None if not found.
@@ -382,14 +382,14 @@ def extract_throughput(log_text: str) -> Optional[Tuple[float, float]]:
 
 def run_benchmark_once(
     label: str,
-    throughput_args: List[str],
+    throughput_args: list[str],
     log_file: str,
     use_flaggems: bool = True,
-    gems_whitelist: Optional[List[str]] = None,
-    oot_whitelist: Optional[List[str]] = None,
+    gems_whitelist: Optional[list[str]] = None,
+    oot_whitelist: Optional[list[str]] = None,
     oot_enabled: bool = True,
     config_path: Optional[str] = None,
-) -> Optional[Tuple[float, float]]:
+) -> Optional[tuple[float, float]]:
     """
     Run a single benchmark invocation and return (total_throughput, output_throughput).
 
@@ -480,17 +480,17 @@ def run_benchmark_once(
 
 def run_benchmark_multi(
     label: str,
-    throughput_args: List[str],
+    throughput_args: list[str],
     num_runs: int,
     run_dir: str,
-    log_counter: List[int],
+    log_counter: list[int],
     use_flaggems: bool = True,
-    gems_whitelist: Optional[List[str]] = None,
-    oot_whitelist: Optional[List[str]] = None,
+    gems_whitelist: Optional[list[str]] = None,
+    oot_whitelist: Optional[list[str]] = None,
     oot_enabled: bool = True,
     config_dir: Optional[str] = None,
-    config_payload: Optional[Dict[str, Any]] = None,
-) -> Optional[Tuple[float, float]]:
+    config_payload: Optional[dict[str, Any]] = None,
+) -> Optional[tuple[float, float]]:
     """
     Run multiple benchmark runs and return the metric value from the second
     successful run (to skip warmup). If fewer than two successful runs exist,
@@ -526,7 +526,7 @@ def run_benchmark_multi(
         ):
             name_prefix = f"{base_name}_{'_'.join(op_backends)}"
 
-    results: List[Optional[Tuple[float, float]]] = []
+    results: list[Optional[tuple[float, float]]] = []
     for i in range(1, num_runs + 1):
         counter = log_counter[0]
         log_counter[0] += 1
@@ -598,21 +598,21 @@ def run_benchmark_multi(
 
 def write_results_csv(
     csv_path: str,
-    baseline_result: Optional[Tuple[float, float]],
-    per_op_results: Dict[str, Optional[Tuple[float, float]]],
-    combined_result: Optional[Tuple[float, float]] = None,
-    baseline_fake_result: Optional[Tuple[float, float]] = None,
-    baseline_enable_result: Optional[Tuple[float, float]] = None,
-    op_backends: Optional[Dict[str, List[str]]] = None,
+    baseline_result: Optional[tuple[float, float]],
+    per_op_results: dict[str, Optional[tuple[float, float]]],
+    combined_result: Optional[tuple[float, float]] = None,
+    baseline_fake_result: Optional[tuple[float, float]] = None,
+    baseline_enable_result: Optional[tuple[float, float]] = None,
+    op_backends: Optional[dict[str, list[str]]] = None,
     per_op_backend_results: Optional[
-        Dict[str, Dict[str, Optional[Tuple[float, float]]]]
+        dict[str, dict[str, Optional[tuple[float, float]]]]
     ] = None,
 ) -> None:
     """
     Write per-operator results into a CSV file, sorted by total throughput desc.
     Includes baseline row at the top.
     """
-    rows: List[Tuple[str, str, Optional[float], Optional[float], Optional[float]]] = []
+    rows: list[tuple[str, str, Optional[float], Optional[float], Optional[float]]] = []
 
     # Add baseline rows first (baseline + baseline_gems_fake_op + baseline_gems_enable)
     if baseline_result is not None:
@@ -729,11 +729,11 @@ def write_results_csv(
 
 def write_op_config_json(
     json_path: str,
-    baseline_result: Optional[Tuple[float, float]],
-    per_op_results: Dict[str, Optional[Tuple[float, float]]],
+    baseline_result: Optional[tuple[float, float]],
+    per_op_results: dict[str, Optional[tuple[float, float]]],
 ) -> None:
     baseline_total = baseline_result[0] if baseline_result is not None else None
-    ops_data: List[Dict[str, Optional[object]]] = []
+    ops_data: list[dict[str, Optional[object]]] = []
 
     for op_name, result in per_op_results.items():
         # if "fake" in op_name:
@@ -801,7 +801,7 @@ def main() -> None:
         ops = [op.strip() for op in args.ops.split(",") if op.strip()]
         # Build op_categories for provided ops using discovered backends
         _, all_categories = get_all_tunable_ops()
-        op_categories: Dict[str, List[str]] = {}
+        op_categories: dict[str, list[str]] = {}
         for op in ops:
             backends = all_categories.get(op, []).copy()
             if not backends:
@@ -830,8 +830,8 @@ def main() -> None:
     round_config_dir = os.path.join(run_dir, "autotune_configs")
     os.makedirs(round_config_dir, exist_ok=True)
     best_config_temp_path = os.path.join(run_dir, "best_config_temp.yaml")
-    best_op_backends: Dict[str, List[str]] = {}
-    tuned_op_backends: Dict[str, List[str]] = {}
+    best_op_backends: dict[str, list[str]] = {}
+    tuned_op_backends: dict[str, list[str]] = {}
     write_best_config(best_config_temp_path, best_op_backends)
 
     if not ops:
@@ -1010,8 +1010,8 @@ def main() -> None:
     # - If NOT in OOT: disable OOT, enable FlagGems with whitelist=[op]
     # - If IN OOT: enable only this OOT op, disable FlagGems
     logger.info("=== Round 2: Per-operator tuning ===")
-    per_op_results: Dict[str, Optional[Tuple[float, float]]] = {}
-    per_op_backend_results: Dict[str, Dict[str, Optional[Tuple[float, float]]]] = {}
+    per_op_results: dict[str, Optional[tuple[float, float]]] = {}
+    per_op_backend_results: dict[str, dict[str, Optional[tuple[float, float]]]] = {}
     write_results_csv(
         csv_path,
         baseline_result,
@@ -1029,7 +1029,7 @@ def main() -> None:
             sorted(set(backends), key=default_order.index) if backends else ["flagos"]
         )
         tuned_op_backends[op] = ordered_backends
-        best_result: Optional[Tuple[float, float]] = None
+        best_result: Optional[tuple[float, float]] = None
         best_backend: Optional[str] = None
         baseline_total = baseline_result[0] if baseline_result is not None else None
 
@@ -1142,9 +1142,9 @@ def main() -> None:
         return
 
     # Separate improved ops into OOT, flagos, and other backends
-    improved_oot_ops: List[str] = []
-    improved_gems_ops: List[str] = []
-    improved_other_ops: List[str] = []
+    improved_oot_ops: list[str] = []
+    improved_gems_ops: list[str] = []
+    improved_other_ops: list[str] = []
     for op in improved_ops:
         backend = best_op_backends.get(op, [None])[0]
         if is_oot_op(op):
@@ -1213,9 +1213,9 @@ def main() -> None:
 
 
 def _print_summary(
-    baseline_result: Optional[Tuple[float, float]],
-    per_op_results: Dict[str, Optional[Tuple[float, float]]],
-    combined_result: Optional[Tuple[float, float]],
+    baseline_result: Optional[tuple[float, float]],
+    per_op_results: dict[str, Optional[tuple[float, float]]],
+    combined_result: Optional[tuple[float, float]],
 ) -> None:
     """Print summary of tuning results."""
     logger.info("=== Summary ===")

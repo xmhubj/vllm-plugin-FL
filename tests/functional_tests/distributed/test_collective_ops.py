@@ -10,7 +10,6 @@ They are designed to be run with pytest-mpi or similar multi-process test runner
 
 import pytest
 import torch
-from typing import List
 from unittest.mock import MagicMock
 
 
@@ -42,7 +41,7 @@ class TestAllReduceCorrectness:
     """Test all_reduce operation correctness."""
 
     @staticmethod
-    def reference_all_reduce(tensors: List[torch.Tensor]) -> torch.Tensor:
+    def reference_all_reduce(tensors: list[torch.Tensor]) -> torch.Tensor:
         """Reference implementation of all_reduce (sum)."""
         return sum(tensors)
 
@@ -70,7 +69,7 @@ class TestReduceScatterCorrectness:
     def reference_reduce_scatter(
         input_tensor: torch.Tensor,
         world_size: int
-    ) -> List[torch.Tensor]:
+    ) -> list[torch.Tensor]:
         """Reference implementation of reduce_scatter."""
         # Split input into chunks
         chunks = input_tensor.chunk(world_size, dim=0)
@@ -98,7 +97,7 @@ class TestAllGatherCorrectness:
     """Test all_gather operation correctness."""
 
     @staticmethod
-    def reference_all_gather(tensors: List[torch.Tensor]) -> torch.Tensor:
+    def reference_all_gather(tensors: list[torch.Tensor]) -> torch.Tensor:
         """Reference implementation of all_gather."""
         return torch.cat(tensors, dim=0)
 
