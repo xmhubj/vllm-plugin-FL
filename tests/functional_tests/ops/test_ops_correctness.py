@@ -21,6 +21,15 @@ def allclose(a: torch.Tensor, b: torch.Tensor, rtol: float = 1e-3, atol: float =
     return torch.allclose(a, b, rtol=rtol, atol=atol)
 
 
+def get_call_op():
+    """Import and return `call_op`, or skip tests if unavailable."""
+    try:
+        from vllm_fl.dispatch import call_op as _call_op
+        return _call_op
+    except ImportError:
+        pytest.skip("vllm_fl.dispatch not available")
+
+
 class TestSiluAndMulCorrectness:
     """Test SiluAndMul operator correctness."""
 
@@ -44,10 +53,7 @@ class TestSiluAndMulCorrectness:
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU not available")
     def test_silu_and_mul_forward(self, test_shapes, device):
         """Test SiluAndMul forward pass correctness."""
-        try:
-            from vllm_fl.dispatch import call_op
-        except ImportError:
-            pytest.skip("vllm_fl.dispatch not available")
+        call_op = get_call_op()
 
         for batch_size, hidden_size in test_shapes:
             # Input must have even hidden size for SiluAndMul
@@ -75,10 +81,7 @@ class TestSiluAndMulCorrectness:
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU not available")
     def test_silu_and_mul_dtypes(self, device):
         """Test SiluAndMul with different dtypes."""
-        try:
-            from vllm_fl.dispatch import call_op
-        except ImportError:
-            pytest.skip("vllm_fl.dispatch not available")
+        call_op = get_call_op()
 
         dtypes = [torch.float32, torch.float16, torch.bfloat16]
         x_fp32 = torch.randn(4, 128, device=device, dtype=torch.float32)
@@ -126,10 +129,7 @@ class TestRMSNormCorrectness:
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU not available")
     def test_rms_norm_forward(self, test_shapes, device):
         """Test RMSNorm forward pass correctness."""
-        try:
-            from vllm_fl.dispatch import call_op
-        except ImportError:
-            pytest.skip("vllm_fl.dispatch not available")
+        call_op = get_call_op()
 
         eps = 1e-6
         for batch_size, seq_len, hidden_size in test_shapes:
@@ -166,10 +166,7 @@ class TestRMSNormCorrectness:
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU not available")
     def test_rms_norm_with_residual(self, device):
         """Test RMSNorm with residual connection."""
-        try:
-            from vllm_fl.dispatch import call_op
-        except ImportError:
-            pytest.skip("vllm_fl.dispatch not available")
+        call_op = get_call_op()
 
         batch_size, seq_len, hidden_size = 4, 32, 256
         eps = 1e-6
@@ -235,10 +232,7 @@ class TestRotaryEmbeddingCorrectness:
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU not available")
     def test_rotary_embedding_basic(self, device):
         """Test basic rotary embedding functionality."""
-        try:
-            from vllm_fl.dispatch import call_op
-        except ImportError:
-            pytest.skip("vllm_fl.dispatch not available")
+        call_op = get_call_op()
 
         num_tokens = 16
         num_heads = 8
@@ -285,10 +279,7 @@ class TestOpsEdgeCases:
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU not available")
     def test_empty_tensor_handling(self, device):
         """Test handling of empty tensors."""
-        try:
-            from vllm_fl.dispatch import call_op
-        except ImportError:
-            pytest.skip("vllm_fl.dispatch not available")
+        call_op = get_call_op()
 
         # Create empty tensor
         x = torch.empty(0, 64, device=device, dtype=torch.float32)
@@ -305,10 +296,7 @@ class TestOpsEdgeCases:
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU not available")
     def test_large_batch_handling(self, device):
         """Test handling of large batch sizes."""
-        try:
-            from vllm_fl.dispatch import call_op
-        except ImportError:
-            pytest.skip("vllm_fl.dispatch not available")
+        call_op = get_call_op()
 
         # Large batch
         x = torch.randn(1024, 256, device=device, dtype=torch.float32)
