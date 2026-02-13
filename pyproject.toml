@@ -61,8 +61,8 @@ exclude_lines = [
     "if __name__ == .__main__.:",
 ]
 
-[tool.ruff.lint.per-file-ignores]
-"vllm_fl/**" = ["ALL"]
+[tool.ruff]
+exclude = ["vllm_fl/**"]
 
 [tool.ruff.lint]
 select = [
