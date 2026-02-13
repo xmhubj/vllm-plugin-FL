@@ -58,7 +58,7 @@ class TestSiluAndMulCorrectness:
 
             # Get FL result
             try:
-                fl_result = call_op("silu_and_mul", x)
+                fl_result = call_op("silu_and_mul", None, x)
 
                 # Check correctness
                 assert fl_result.shape == ref_result.shape, (
@@ -88,7 +88,7 @@ class TestSiluAndMulCorrectness:
             ref_result = self.reference_silu_and_mul(x)
 
             try:
-                fl_result = call_op("silu_and_mul", x)
+                fl_result = call_op("silu_and_mul", None, x)
                 # Use looser tolerance for half precision
                 tol = 1e-2 if dtype in [torch.float16, torch.bfloat16] else 1e-3
                 assert allclose(fl_result, ref_result, rtol=tol, atol=tol), (
@@ -136,12 +136,17 @@ class TestRMSNormCorrectness:
             x = torch.randn(batch_size, seq_len, hidden_size, device=device, dtype=torch.float32)
             weight = torch.ones(hidden_size, device=device, dtype=torch.float32)
 
+            # Create a mock obj with weight and variance_epsilon (like RMSNormFL)
+            mock_obj = type("MockRMSNorm", (), {
+                "weight": weight, "variance_epsilon": eps,
+            })()
+
             # Get reference result
             ref_result = self.reference_rms_norm(x, weight, eps)
 
             # Get FL result
             try:
-                fl_result = call_op("rms_norm", x, None, weight, eps)
+                fl_result = call_op("rms_norm", mock_obj, x)
 
                 # Handle tuple return (output, residual)
                 if isinstance(fl_result, tuple):
@@ -173,8 +178,13 @@ class TestRMSNormCorrectness:
         residual = torch.randn(batch_size, seq_len, hidden_size, device=device, dtype=torch.float32)
         weight = torch.ones(hidden_size, device=device, dtype=torch.float32)
 
+        # Create a mock obj with weight and variance_epsilon (like RMSNormFL)
+        mock_obj = type("MockRMSNorm", (), {
+            "weight": weight, "variance_epsilon": eps,
+        })()
+
         try:
-            result = call_op("rms_norm", x, residual, weight, eps)
+            result = call_op("rms_norm", mock_obj, x, residual)
 
             # Should return tuple (normalized, updated_residual) when residual is provided
             if isinstance(result, tuple):
@@ -251,6 +261,7 @@ class TestRotaryEmbeddingCorrectness:
         try:
             q_out, k_out = call_op(
                 "rotary_embedding",
+                None,  # obj
                 q[..., :rotary_dim],
                 k[..., :rotary_dim],
                 cos,
@@ -285,7 +296,7 @@ class TestOpsEdgeCases:
         # Some ops may handle empty tensors, others may raise
         # This test documents the behavior
         try:
-            result = call_op("silu_and_mul", x)
+            result = call_op("silu_and_mul", None, x)
             assert result.shape[0] == 0
         except (RuntimeError, ValueError):
             # Empty tensor handling is implementation-dependent
@@ -303,7 +314,7 @@ class TestOpsEdgeCases:
         x = torch.randn(1024, 256, device=device, dtype=torch.float32)
 
         try:
-            result = call_op("silu_and_mul", x)
+            result = call_op("silu_and_mul", None, x)
             assert result.shape == (1024, 128)
         except RuntimeError as e:
             if "No available implementation" in str(e):
