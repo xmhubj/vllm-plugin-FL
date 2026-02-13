@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================
+  # Job 1: Lint (ruff check, ruff format, typos)
+  # Runs on every push/PR. Fast, no special requirements.
+  # ============================================================
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install linting tools
+        run: pip install ruff typos-cli
+
+      - name: Ruff check
+        run: ruff check --output-format=github .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Typos check
+        run: typos --force-exclude .
+
+  # ============================================================
+  # Job 2: Unit tests (no GPU required)
+  # Tests dispatch, ops logic, mocks, etc.
+  # ============================================================
+  unit-tests:
+    name: Unit Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[test]" 2>/dev/null || pip install -e .
+          pip install pytest pytest-cov
+
+      - name: Run unit tests
+        run: |
+          pytest tests/unit_tests/ \
+            --tb=short \
+            --cov=vllm_fl \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            -q
+
+      - name: Upload coverage report
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  # ============================================================
+  # Job 3: Build & install check
+  # Verify the package can be built and installed cleanly.
+  # ============================================================
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: pip install build setuptools setuptools-scm
+
+      - name: Build package
+        run: python -m build --wheel --no-isolation 2>/dev/null || python setup.py bdist_wheel
+
+      - name: Verify wheel
+        run: |
+          pip install dist/*.whl
+          python -c "import vllm_fl; print('vllm_fl imported successfully')"
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel
+          path: dist/*.whl
+
+  # ============================================================
+  # Job 4: Functional tests (GPU required)
+  # Runs on self-hosted GPU runners. Only on main branch push
+  # or PRs labeled 'gpu-test'.
+  # ============================================================
+  functional-tests:
+    name: Functional Tests (GPU)
+    runs-on: [self-hosted, gpu]
+    needs: unit-tests
+    if: >
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'gpu-test')
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check GPU availability
+        run: nvidia-smi
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e .
+          pip install pytest
+
+      - name: Run functional ops tests
+        run: |
+          pytest tests/functional_tests/ops/ \
+            tests/functional_tests/compilation/ \
+            -v --tb=short -q
+
+      - name: Run inference tests
+        run: |
+          pytest tests/functional_tests/inference/ \
+            -v --tb=short -s
+
+      - name: Run serving tests
+        run: |
+          pytest tests/functional_tests/serving/ \
+            -v --tb=short -s \
+            --timeout=600
