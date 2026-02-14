@@ -72,7 +72,17 @@ setup(
     packages=find_packages(exclude=("docs", "examples", "tests*")),
     python_requires=">=3.9",
     install_requires=get_requirements(),
-    extras_require={},
+    extras_require={
+        "test": [
+            "pytest",
+            "pytest-cov",
+            "numpy",
+            "torch>=2.7.1",
+            "pyyaml",
+            "decorator",
+            "vllm==0.13.0",
+        ],
+    },
     entry_points={
         "vllm.platform_plugins": ["fl = vllm_fl:register"],
         "vllm.general_plugins": ["fl = vllm_fl:register_model"],

@@ -3,7 +3,7 @@ requires = [
     "packaging>=24.2",
     "setuptools>=77.0.3,<81.0.0",
     "setuptools-scm>=8.0",
-    "torch>=2.10.0",
+    "torch>=2.7.1",
     "wheel",
 ]
 build-backend = "setuptools.build_meta"
@@ -19,6 +19,17 @@ requires-python = ">=3.10,<3.14"
 
 [project.urls]
 Homepage = "https://github.com/flagos-ai/vllm-plugin-FL"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+    "numpy",
+    "torch>=2.7.1",
+    "pyyaml",
+    "decorator",
+    "vllm==0.13.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -62,7 +73,10 @@ exclude_lines = [
 ]
 
 [tool.ruff]
-exclude = ["vllm_fl/**"]
+exclude = [
+    "vllm_fl/**",
+
+]
 
 [tool.ruff.lint]
 select = [
