@@ -14,7 +14,9 @@ import torch.nn.functional as F
 pytestmark = pytest.mark.gpu
 
 
-def allclose(a: torch.Tensor, b: torch.Tensor, rtol: float = 1e-3, atol: float = 1e-3) -> bool:
+def allclose(
+    a: torch.Tensor, b: torch.Tensor, rtol: float = 1e-3, atol: float = 1e-3
+) -> bool:
     """Check if two tensors are close within tolerance."""
     return torch.allclose(a, b, rtol=rtol, atol=atol)
 
@@ -23,6 +25,7 @@ def get_call_op():
     """Import and return `call_op`, or skip tests if unavailable."""
     try:
         from vllm_fl.dispatch import call_op as _call_op
+
         return _call_op
     except ImportError:
         pytest.skip("vllm_fl.dispatch not available")
@@ -55,7 +58,9 @@ class TestSiluAndMulCorrectness:
 
         for batch_size, hidden_size in test_shapes:
             # Input must have even hidden size for SiluAndMul
-            x = torch.randn(batch_size, hidden_size * 2, device=device, dtype=torch.float32)
+            x = torch.randn(
+                batch_size, hidden_size * 2, device=device, dtype=torch.float32
+            )
 
             # Get reference result
             ref_result = self.reference_silu_and_mul(x)
@@ -108,16 +113,14 @@ class TestRMSNormCorrectness:
     def test_shapes(self):
         """Common test shapes for RMSNorm."""
         return [
-            (1, 64, 128),     # (batch, seq, hidden)
+            (1, 64, 128),  # (batch, seq, hidden)
             (4, 32, 256),
             (8, 16, 512),
         ]
 
     @staticmethod
     def reference_rms_norm(
-        x: torch.Tensor,
-        weight: torch.Tensor,
-        eps: float = 1e-6
+        x: torch.Tensor, weight: torch.Tensor, eps: float = 1e-6
     ) -> torch.Tensor:
         """Reference implementation of RMSNorm."""
         variance = x.pow(2).mean(-1, keepdim=True)
@@ -131,13 +134,20 @@ class TestRMSNormCorrectness:
 
         eps = 1e-6
         for batch_size, seq_len, hidden_size in test_shapes:
-            x = torch.randn(batch_size, seq_len, hidden_size, device=device, dtype=torch.float32)
+            x = torch.randn(
+                batch_size, seq_len, hidden_size, device=device, dtype=torch.float32
+            )
             weight = torch.ones(hidden_size, device=device, dtype=torch.float32)
 
             # Create a mock obj with weight and variance_epsilon (like RMSNormFL)
-            mock_obj = type("MockRMSNorm", (), {
-                "weight": weight, "variance_epsilon": eps,
-            })()
+            mock_obj = type(
+                "MockRMSNorm",
+                (),
+                {
+                    "weight": weight,
+                    "variance_epsilon": eps,
+                },
+            )()
 
             # Get reference result
             ref_result = self.reference_rms_norm(x, weight, eps)
@@ -169,14 +179,23 @@ class TestRMSNormCorrectness:
         batch_size, seq_len, hidden_size = 4, 32, 256
         eps = 1e-6
 
-        x = torch.randn(batch_size, seq_len, hidden_size, device=device, dtype=torch.float32)
-        residual = torch.randn(batch_size, seq_len, hidden_size, device=device, dtype=torch.float32)
+        x = torch.randn(
+            batch_size, seq_len, hidden_size, device=device, dtype=torch.float32
+        )
+        residual = torch.randn(
+            batch_size, seq_len, hidden_size, device=device, dtype=torch.float32
+        )
         weight = torch.ones(hidden_size, device=device, dtype=torch.float32)
 
         # Create a mock obj with weight and variance_epsilon (like RMSNormFL)
-        mock_obj = type("MockRMSNorm", (), {
-            "weight": weight, "variance_epsilon": eps,
-        })()
+        mock_obj = type(
+            "MockRMSNorm",
+            (),
+            {
+                "weight": weight,
+                "variance_epsilon": eps,
+            },
+        )()
 
         try:
             result = call_op("rms_norm", mock_obj, x, residual)
@@ -209,7 +228,7 @@ class TestRotaryEmbeddingCorrectness:
         def rotate_half(x: torch.Tensor) -> torch.Tensor:
             """Rotate half the hidden dims."""
             x1 = x[..., : x.shape[-1] // 2]
-            x2 = x[..., x.shape[-1] // 2:]
+            x2 = x[..., x.shape[-1] // 2 :]
             return torch.cat((-x2, x1), dim=-1)
 
         # Gather cos/sin by positions
@@ -239,12 +258,19 @@ class TestRotaryEmbeddingCorrectness:
         max_position = 2048
 
         # Create test inputs
-        q = torch.randn(num_tokens, num_heads, head_size, device=device, dtype=torch.float32)
-        k = torch.randn(num_tokens, num_heads, head_size, device=device, dtype=torch.float32)
+        q = torch.randn(
+            num_tokens, num_heads, head_size, device=device, dtype=torch.float32
+        )
+        k = torch.randn(
+            num_tokens, num_heads, head_size, device=device, dtype=torch.float32
+        )
         positions = torch.arange(num_tokens, device=device)
 
         # Create cos/sin cache
-        inv_freq = 1.0 / (10000.0 ** (torch.arange(0, rotary_dim, 2, device=device).float() / rotary_dim))
+        inv_freq = 1.0 / (
+            10000.0
+            ** (torch.arange(0, rotary_dim, 2, device=device).float() / rotary_dim)
+        )
         t = torch.arange(max_position, device=device).float()
         freqs = torch.outer(t, inv_freq)
         cos = freqs.cos()

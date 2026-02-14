@@ -53,7 +53,10 @@ class TestRMSNormFL:
         from vllm_fl.ops.layernorm import RMSNormFL
 
         hidden_size = 128
-        mock_call_op.return_value = (torch.randn(2, hidden_size), torch.randn(2, hidden_size))
+        mock_call_op.return_value = (
+            torch.randn(2, hidden_size),
+            torch.randn(2, hidden_size),
+        )
 
         layer = RMSNormFL(hidden_size=hidden_size)
         x = torch.randn(2, hidden_size)

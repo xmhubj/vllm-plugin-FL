@@ -21,6 +21,7 @@ import torch.nn.functional as F
 # Helpers
 # =============================================================================
 
+
 class _FakeNorm:
     """Minimal stand-in for an RMSNorm layer, providing weight and epsilon."""
 
@@ -32,6 +33,7 @@ class _FakeNorm:
 # =============================================================================
 # Reference Implementations (PyTorch baseline)
 # =============================================================================
+
 
 def reference_silu_and_mul(x: torch.Tensor) -> torch.Tensor:
     """Reference SiLU and multiply implementation."""
@@ -72,6 +74,7 @@ def reference_rotary_embedding(
 
     Applies rotary position embedding to query and key tensors.
     """
+
     def apply_rotary(x, cos, sin, is_neox_style):
         if is_neox_style:
             # GPT-NeoX style: split at half
@@ -96,6 +99,7 @@ def reference_rotary_embedding(
 # Test Fixtures
 # =============================================================================
 
+
 @pytest.fixture(params=[torch.float32, torch.float16])
 def dtype(request):
     """Test with different floating point dtypes."""
@@ -117,6 +121,7 @@ def device():
 # =============================================================================
 # SiLU and Multiply Tests
 # =============================================================================
+
 
 class TestSiluAndMulNumerical:
     """Numerical correctness tests for SiLU and multiply operation."""
@@ -217,6 +222,7 @@ class TestSiluAndMulNumerical:
 # RMS Normalization Tests
 # =============================================================================
 
+
 class TestRMSNormNumerical:
     """Numerical correctness tests for RMS normalization."""
 
@@ -305,12 +311,7 @@ class TestRMSNormNumerical:
 
         # After RMS norm, the RMS should be approximately 1
         rms = result.pow(2).mean(-1).sqrt()
-        torch.testing.assert_close(
-            rms,
-            torch.ones_like(rms),
-            rtol=0.1,
-            atol=0.1
-        )
+        torch.testing.assert_close(rms, torch.ones_like(rms), rtol=0.1, atol=0.1)
 
     def test_epsilon_effect(self, device):
         """Test that epsilon prevents division by zero."""
@@ -372,6 +373,7 @@ class TestRMSNormNumerical:
 # Rotary Embedding Tests
 # =============================================================================
 
+
 class TestRotaryEmbeddingNumerical:
     """Numerical correctness tests for rotary position embedding."""
 
@@ -390,8 +392,12 @@ class TestRotaryEmbeddingNumerical:
         key = torch.randn(batch, num_heads, seq_len, head_dim, device=device)
 
         # Create cos/sin cache [max_seq_len, rotary_dim]
-        freqs = 1.0 / (10000 ** (torch.arange(0, rotary_dim, device=device).float() / rotary_dim))
-        angles = torch.arange(max_seq_len, device=device).unsqueeze(1) * freqs.unsqueeze(0)
+        freqs = 1.0 / (
+            10000 ** (torch.arange(0, rotary_dim, device=device).float() / rotary_dim)
+        )
+        angles = torch.arange(max_seq_len, device=device).unsqueeze(
+            1
+        ) * freqs.unsqueeze(0)
         cos = torch.cos(angles)  # [max_seq_len, rotary_dim]
         sin = torch.sin(angles)  # [max_seq_len, rotary_dim]
 
@@ -399,7 +405,11 @@ class TestRotaryEmbeddingNumerical:
         positions = torch.arange(seq_len, device=device).unsqueeze(0).expand(batch, -1)
 
         result_q, result_k = rotary_embedding_torch(
-            None, query, key, cos, sin,
+            None,
+            query,
+            key,
+            cos,
+            sin,
             position_ids=positions,
             rotary_interleaved=False,
             inplace=False,
@@ -431,7 +441,11 @@ class TestRotaryEmbeddingNumerical:
         sin = torch.randn(max_seq_len, rotary_dim, device=device)
 
         result_q, result_k = rotary_embedding_torch(
-            None, query, key, cos, sin,
+            None,
+            query,
+            key,
+            cos,
+            sin,
             position_ids=positions,
             rotary_interleaved=False,
             inplace=False,
@@ -460,7 +474,11 @@ class TestRotaryEmbeddingNumerical:
         sin = torch.randn(max_seq_len, rotary_dim, device=device)
 
         result_q, result_k = rotary_embedding_torch(
-            None, query, key, cos, sin,
+            None,
+            query,
+            key,
+            cos,
+            sin,
             position_ids=positions,
             rotary_interleaved=False,
             inplace=False,
@@ -488,7 +506,11 @@ class TestRotaryEmbeddingNumerical:
         sin = torch.randn(max_seq_len, rotary_dim, device=device, dtype=dtype)
 
         result_q, result_k = rotary_embedding_torch(
-            None, query, key, cos, sin,
+            None,
+            query,
+            key,
+            cos,
+            sin,
             position_ids=positions,
             rotary_interleaved=False,
             inplace=False,
@@ -517,7 +539,11 @@ class TestRotaryEmbeddingNumerical:
 
         # Test neox style (default)
         result_q_neox, result_k_neox = rotary_embedding_torch(
-            None, query, key, cos, sin,
+            None,
+            query,
+            key,
+            cos,
+            sin,
             position_ids=positions,
             rotary_interleaved=False,
             inplace=False,
@@ -525,7 +551,11 @@ class TestRotaryEmbeddingNumerical:
 
         # Test interleaved style
         result_q_interleaved, result_k_interleaved = rotary_embedding_torch(
-            None, query, key, cos, sin,
+            None,
+            query,
+            key,
+            cos,
+            sin,
             position_ids=positions,
             rotary_interleaved=True,
             inplace=False,
@@ -560,7 +590,11 @@ class TestRotaryEmbeddingNumerical:
 
         # With cos=1 and sin=0, output should equal input (no rotation)
         result_q, result_k = rotary_embedding_torch(
-            None, query, key, cos, sin,
+            None,
+            query,
+            key,
+            cos,
+            sin,
             position_ids=positions,
             rotary_interleaved=False,
             inplace=False,
@@ -573,6 +607,7 @@ class TestRotaryEmbeddingNumerical:
 # =============================================================================
 # Cross-Implementation Consistency Tests
 # =============================================================================
+
 
 class TestCrossImplementationConsistency:
     """Test consistency between different backend implementations."""
@@ -611,6 +646,7 @@ class TestCrossImplementationConsistency:
 # =============================================================================
 # Edge Case Tests
 # =============================================================================
+
 
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""

@@ -24,6 +24,7 @@ class TestCollectiveOpsBasic:
         """Test that CommunicatorFL can be imported."""
         try:
             from vllm_fl.distributed.communicator import CommunicatorFL
+
             assert CommunicatorFL is not None
         except ImportError as e:
             pytest.skip(f"CommunicatorFL not available: {e}")
@@ -34,6 +35,7 @@ class TestCollectiveOpsBasic:
             from vllm_fl.distributed.device_communicators.flagcx import (
                 PyFlagcxCommunicator,
             )
+
             assert PyFlagcxCommunicator is not None
         except ImportError as e:
             pytest.skip(f"PyFlagcxCommunicator not available: {e}")
@@ -49,7 +51,7 @@ class TestAllReduceCorrectness:
 
     @pytest.mark.skipif(
         not torch.cuda.is_available() or torch.cuda.device_count() < 2,
-        reason="Multiple GPUs not available"
+        reason="Multiple GPUs not available",
     )
     def test_all_reduce_sum_correctness(self):
         """Test all_reduce sum produces correct results."""
@@ -69,8 +71,7 @@ class TestReduceScatterCorrectness:
 
     @staticmethod
     def reference_reduce_scatter(
-        input_tensor: torch.Tensor,
-        world_size: int
+        input_tensor: torch.Tensor, world_size: int
     ) -> list[torch.Tensor]:
         """Reference implementation of reduce_scatter."""
         # Split input into chunks
@@ -80,12 +81,14 @@ class TestReduceScatterCorrectness:
 
     def test_reduce_scatter_reference(self):
         """Test reference reduce_scatter implementation."""
-        input_tensor = torch.tensor([
-            [1.0, 2.0],
-            [3.0, 4.0],
-            [5.0, 6.0],
-            [7.0, 8.0],
-        ])
+        input_tensor = torch.tensor(
+            [
+                [1.0, 2.0],
+                [3.0, 4.0],
+                [5.0, 6.0],
+                [7.0, 8.0],
+            ]
+        )
         world_size = 2
 
         result = self.reference_reduce_scatter(input_tensor, world_size)
@@ -109,10 +112,12 @@ class TestAllGatherCorrectness:
             torch.tensor([[1.0, 2.0]]),
             torch.tensor([[3.0, 4.0]]),
         ]
-        expected = torch.tensor([
-            [1.0, 2.0],
-            [3.0, 4.0],
-        ])
+        expected = torch.tensor(
+            [
+                [1.0, 2.0],
+                [3.0, 4.0],
+            ]
+        )
 
         result = self.reference_all_gather(tensors)
         assert torch.allclose(result, expected)
@@ -123,7 +128,7 @@ class TestSendRecvCorrectness:
 
     @pytest.mark.skipif(
         not torch.cuda.is_available() or torch.cuda.device_count() < 2,
-        reason="Multiple GPUs not available"
+        reason="Multiple GPUs not available",
     )
     def test_send_recv_mock(self):
         """Test send/recv with mocked communicator."""

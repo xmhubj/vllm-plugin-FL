@@ -25,6 +25,7 @@ class TestWeakRefTensors:
         """Test weak_ref_tensors function exists."""
         try:
             from vllm_fl.compilation.graph import weak_ref_tensors
+
             assert weak_ref_tensors is not None
         except ImportError:
             pytest.skip("weak_ref_tensors not available")
@@ -110,6 +111,7 @@ class TestGraphCacheManagement:
 
     def test_batch_descriptor_hashing(self):
         """Test that batch descriptors can be used as dict keys."""
+
         @dataclass(frozen=True)
         class MockBatchDescriptor:
             num_tokens: int

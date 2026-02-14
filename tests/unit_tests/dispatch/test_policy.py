@@ -250,6 +250,7 @@ op_backends:
 
         try:
             from vllm_fl.dispatch.policy import policy_from_config
+
             policy = policy_from_config(config_path)
 
             assert policy.prefer == "vendor"
@@ -262,5 +263,6 @@ op_backends:
 
     def test_policy_from_nonexistent_config(self):
         from vllm_fl.dispatch.policy import policy_from_config
+
         with pytest.raises(FileNotFoundError):
             policy_from_config("/nonexistent/path/config.yaml")

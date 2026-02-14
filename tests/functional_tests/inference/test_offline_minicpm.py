@@ -85,8 +85,7 @@ class TestMiniCPMO:
         if audio_count > 0:
             mm_data = {
                 "audio": [
-                    asset.audio_and_sample_rate
-                    for asset in AUDIO_ASSETS[:audio_count]
+                    asset.audio_and_sample_rate for asset in AUDIO_ASSETS[:audio_count]
                 ]
             }
 

@@ -20,7 +20,9 @@ class TestRotaryEmbeddingFL:
 
     @pytest.fixture
     def mock_parent_init(self):
-        with patch("vllm_fl.ops.rotary_embedding.RotaryEmbedding.__init__", return_value=None):
+        with patch(
+            "vllm_fl.ops.rotary_embedding.RotaryEmbedding.__init__", return_value=None
+        ):
             yield
 
     def test_forward_oot_dispatches_correctly(self, mock_parent_init, mock_call_op):

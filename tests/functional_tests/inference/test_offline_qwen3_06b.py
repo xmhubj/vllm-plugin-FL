@@ -40,13 +40,18 @@ def test_models(
     max_tokens: int,
     enforce_eager: bool,
 ) -> None:
-    prompt = "The following numbers of the sequence " + ", ".join(
-        str(i) for i in range(1024)) + " are:"
+    prompt = (
+        "The following numbers of the sequence "
+        + ", ".join(str(i) for i in range(1024))
+        + " are:"
+    )
     example_prompts = [prompt]
 
-    with VllmRunner(MODEL_PATH,
-                    max_model_len=8192,
-                    dtype=dtype,
-                    enforce_eager=enforce_eager,
-                    gpu_memory_utilization=0.7) as vllm_model:
+    with VllmRunner(
+        MODEL_PATH,
+        max_model_len=8192,
+        dtype=dtype,
+        enforce_eager=enforce_eager,
+        gpu_memory_utilization=0.7,
+    ) as vllm_model:
         vllm_model.generate_greedy(example_prompts, max_tokens)

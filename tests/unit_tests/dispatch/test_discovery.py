@@ -41,7 +41,9 @@ class TestCallRegisterFunction:
 
     def test_module_with_vllm_fl_register(self):
         registry = MagicMock()
-        module = NonCallableMagicMock(spec=["vllm_fl_register"])  # Only has vllm_fl_register attr
+        module = NonCallableMagicMock(
+            spec=["vllm_fl_register"]
+        )  # Only has vllm_fl_register attr
         module.vllm_fl_register = MagicMock()
 
         result = _call_register_function(module, registry, "test")
@@ -111,9 +113,7 @@ class TestDiscoverPlugins:
     def test_empty_discovery(self):
         with (
             patch.dict(os.environ, {PLUGIN_MODULES_ENV: ""}),
-            patch(
-                "vllm_fl.dispatch.discovery._get_entry_points", return_value=[]
-            ),
+            patch("vllm_fl.dispatch.discovery._get_entry_points", return_value=[]),
         ):
             registry = MagicMock()
             result = discover_plugins(registry)

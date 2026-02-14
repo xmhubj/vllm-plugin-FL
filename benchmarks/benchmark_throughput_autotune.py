@@ -604,7 +604,8 @@ def write_results_csv(
     baseline_fake_result: tuple[float, float] | None = None,
     baseline_enable_result: tuple[float, float] | None = None,
     op_backends: dict[str, list[str]] | None = None,
-    per_op_backend_results: dict[str, dict[str, tuple[float, float] | None]] | None = None,
+    per_op_backend_results: dict[str, dict[str, tuple[float, float] | None]]
+    | None = None,
 ) -> None:
     """
     Write per-operator results into a CSV file, sorted by total throughput desc.
@@ -1089,7 +1090,11 @@ def main() -> None:
                 op_backends=tuned_op_backends,
                 per_op_backend_results=per_op_backend_results,
             )
-            if val is not None and baseline_total is not None and (best_result is None or val[0] > best_result[0]):
+            if (
+                val is not None
+                and baseline_total is not None
+                and (best_result is None or val[0] > best_result[0])
+            ):
                 best_result = val
                 best_backend = backend
 
