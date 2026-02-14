@@ -28,7 +28,6 @@ jobs:
       options: >-
         --privileged
         --gpus all
-        --network=host
         --ipc=host
         --device=/dev/infiniband
         --shm-size 512g
