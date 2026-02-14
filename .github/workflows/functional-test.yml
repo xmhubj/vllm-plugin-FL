@@ -28,6 +28,7 @@ jobs:
       options: >-
         --privileged
         --gpus all
+        --pull=never
         --network=host
         --ipc=host
         --device=/dev/infiniband
