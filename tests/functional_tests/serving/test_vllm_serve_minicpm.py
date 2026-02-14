@@ -61,9 +61,9 @@ def vllm_server():
     ]
 
     print(f"\n[Setup] Starting vLLM service: {' '.join(cmd)}")
-    log_file = tempfile.NamedTemporaryFile(
+    log_file = tempfile.NamedTemporaryFile(  # noqa: SIM115
         prefix="vllm_minicpm_", suffix=".log", delete=False
-    )  # noqa: SIM115
+    )
     process = subprocess.Popen(
         cmd, stdout=log_file, stderr=subprocess.STDOUT, preexec_fn=os.setsid
     )
