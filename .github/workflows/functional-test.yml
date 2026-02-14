@@ -19,7 +19,7 @@ on:
 jobs:
   functional-tests:
     name: Functional Tests (GPU)
-    runs-on: [self-hosted, gpu-8]
+    runs-on: [self-hosted, nvidia, gpu-8]
     timeout-minutes: ${{ inputs.timeout-minutes }}
     container:
       image: harbor.baai.ac.cn/flagscale/cuda12.8.1-cudnn9.15.1-python3.12-torch2.7.1-train:2512031616
