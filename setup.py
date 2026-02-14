@@ -80,7 +80,7 @@ setup(
             "torch>=2.7.1",
             "pyyaml",
             "decorator",
-            "vllm==0.13.0",
+            "vllm[audio]==0.13.0",
         ],
     },
     entry_points={

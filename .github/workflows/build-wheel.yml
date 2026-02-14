@@ -38,7 +38,16 @@ jobs:
       - name: Verify wheel
         run: |
           pip install dist/*.whl
-          python -c "import vllm_fl; print('vllm_fl imported successfully')"
+          # Verify package metadata and file structure (full import requires flag_gems runtime)
+          python -c "
+          from importlib.metadata import metadata, files
+          meta = metadata('vllm-plugin-fl')
+          print(f\"Package: {meta['Name']} {meta['Version']}\")
+          pkg_files = [str(f) for f in files('vllm-plugin-fl')]
+          assert any('vllm_fl' in f for f in pkg_files), 'vllm_fl module not found in wheel'
+          print(f'Installed files: {len(pkg_files)}')
+          print('Wheel verified successfully')
+          "
 
       - name: Upload wheel
         if: inputs.upload-artifact

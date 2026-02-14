@@ -19,14 +19,44 @@ on:
 jobs:
   functional-tests:
     name: Functional Tests (GPU)
-    runs-on: [self-hosted, gpu]
+    runs-on: [self-hosted, gpu-8]
     timeout-minutes: ${{ inputs.timeout-minutes }}
+    container:
+      image: harbor.baai.ac.cn/flagscale/cuda12.8.1-cudnn9.15.1-python3.12-torch2.7.1-train:2512031616
+      volumes:
+        - /data:/data
+      options: >-
+        --privileged
+        --gpus all
+        --network=host
+        --ipc=host
+        --device=/dev/infiniband
+        --shm-size 512g
+        --ulimit memlock=-1
+        --cap-add=SYS_PTRACE
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Check GPU availability
         run: nvidia-smi
+
+      - name: Install FlagGems
+        run: |
+          pip install -U scikit-build-core==0.11 pybind11 ninja cmake
+          git clone https://github.com/flagos-ai/FlagGems /tmp/FlagGems
+          pip install --no-build-isolation /tmp/FlagGems
+
+      - name: Install FlagCX
+        run: |
+          git clone https://github.com/flagos-ai/FlagCX.git /tmp/FlagCX
+          cd /tmp/FlagCX
+          git checkout v0.9.0
+          git submodule update --init --recursive
+          make USE_NVIDIA=1
+          echo "FLAGCX_PATH=/tmp/FlagCX" >> $GITHUB_ENV
+          cd plugin/torch/
+          FLAGCX_ADAPTOR=nvidia pip install --no-build-isolation .
 
       - name: Install dependencies
         run: |
