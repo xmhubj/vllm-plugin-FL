@@ -1,8 +1,6 @@
 import os
-from typing import List
 
 from setuptools import find_packages, setup
-from setuptools_scm import get_version
 
 ROOT_DIR = os.path.dirname(__file__)
 VERSION = "0.0.0"
@@ -22,10 +20,10 @@ def read_readme() -> str:
         return ""
 
 
-def get_requirements() -> List[str]:
+def get_requirements() -> list[str]:
     """Get Python package dependencies from requirements.txt."""
 
-    def _read_requirements(filename: str) -> List[str]:
+    def _read_requirements(filename: str) -> list[str]:
         with open(get_path(filename)) as f:
             requirements = f.read().strip().split("\n")
         resolved_requirements = []

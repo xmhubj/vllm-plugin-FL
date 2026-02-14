@@ -12,7 +12,7 @@ import pytest
 def has_vllm_profiler():
     """Check if vllm profiler is available."""
     try:
-        from vllm.profiler.wrapper import TorchProfilerWrapper
+        from vllm.profiler.wrapper import TorchProfilerWrapper  # noqa: F401
         return True
     except ImportError:
         return False

@@ -4,9 +4,10 @@
 Tests for rotary embedding ops.
 """
 
+from unittest.mock import patch
+
 import pytest
 import torch
-from unittest.mock import patch
 
 
 class TestRotaryEmbeddingFL:

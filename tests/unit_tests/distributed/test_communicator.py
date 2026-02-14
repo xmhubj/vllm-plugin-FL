@@ -8,6 +8,7 @@ Tests are skipped if flagcx is not available.
 """
 
 import os
+
 import pytest
 
 

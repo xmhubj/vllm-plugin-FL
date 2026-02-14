@@ -11,11 +11,11 @@ This module follows a layered testing strategy:
 Note: These tests require vllm >= 0.13.0 with full installation.
 """
 
-import pytest
-import numpy as np
-import torch
 from unittest.mock import MagicMock
 
+import numpy as np
+import pytest
+import torch
 
 # =============================================================================
 # Test Utilities - Check availability before importing
@@ -24,7 +24,7 @@ from unittest.mock import MagicMock
 def has_vllm_model_runner():
     """Check if vllm model runner dependencies are available."""
     try:
-        from vllm_fl.worker.model_runner import ModelRunnerFL
+        from vllm_fl.worker.model_runner import ModelRunnerFL  # noqa: F401
         return True
     except ImportError:
         return False

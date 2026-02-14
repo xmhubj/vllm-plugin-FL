@@ -12,6 +12,7 @@ import os
 
 import pytest
 from transformers import AutoTokenizer
+
 from vllm import LLM, SamplingParams
 from vllm.assets.audio import AudioAsset
 

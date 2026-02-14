@@ -8,9 +8,11 @@ Tests basic model generation with VllmRunner in eager and graph mode.
 import os
 
 import pytest
+
 import vllm  # noqa: F401
-from .vllm_runner import VllmRunner
+
 import vllm_fl  # noqa: F401
+from .vllm_runner import VllmRunner
 
 MODEL_PATH = "/data/models/Qwen/Qwen3-0.6B"
 pytestmark = pytest.mark.skipif(

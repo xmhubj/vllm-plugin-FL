@@ -17,7 +17,6 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-
 # =============================================================================
 # Helpers
 # =============================================================================
@@ -124,7 +123,9 @@ class TestSiluAndMulNumerical:
 
     def test_basic_correctness(self, device):
         """Test basic numerical correctness."""
-        from vllm_fl.dispatch.backends.reference.impl.activation import silu_and_mul_torch
+        from vllm_fl.dispatch.backends.reference.impl.activation import (
+            silu_and_mul_torch,
+        )
 
         x = torch.randn(2, 16, device=device, dtype=torch.float32)
 
@@ -135,7 +136,9 @@ class TestSiluAndMulNumerical:
 
     def test_output_shape(self, hidden_size_config, device):
         """Test that output shape is correct (half of input)."""
-        from vllm_fl.dispatch.backends.reference.impl.activation import silu_and_mul_torch
+        from vllm_fl.dispatch.backends.reference.impl.activation import (
+            silu_and_mul_torch,
+        )
 
         batch, hidden = hidden_size_config
         x = torch.randn(batch, hidden * 2, device=device)
@@ -146,7 +149,9 @@ class TestSiluAndMulNumerical:
 
     def test_dtype_preservation(self, dtype, device):
         """Test that dtype is preserved."""
-        from vllm_fl.dispatch.backends.reference.impl.activation import silu_and_mul_torch
+        from vllm_fl.dispatch.backends.reference.impl.activation import (
+            silu_and_mul_torch,
+        )
 
         x = torch.randn(2, 16, device=device, dtype=dtype)
 
@@ -156,7 +161,9 @@ class TestSiluAndMulNumerical:
 
     def test_zero_input(self, device):
         """Test with zero input tensor."""
-        from vllm_fl.dispatch.backends.reference.impl.activation import silu_and_mul_torch
+        from vllm_fl.dispatch.backends.reference.impl.activation import (
+            silu_and_mul_torch,
+        )
 
         x = torch.zeros(2, 16, device=device)
 
@@ -167,7 +174,9 @@ class TestSiluAndMulNumerical:
 
     def test_large_values(self, device):
         """Test with large input values."""
-        from vllm_fl.dispatch.backends.reference.impl.activation import silu_and_mul_torch
+        from vllm_fl.dispatch.backends.reference.impl.activation import (
+            silu_and_mul_torch,
+        )
 
         x = torch.randn(2, 16, device=device) * 100
 
@@ -178,7 +187,9 @@ class TestSiluAndMulNumerical:
 
     def test_negative_values(self, device):
         """Test with negative input values."""
-        from vllm_fl.dispatch.backends.reference.impl.activation import silu_and_mul_torch
+        from vllm_fl.dispatch.backends.reference.impl.activation import (
+            silu_and_mul_torch,
+        )
 
         x = -torch.abs(torch.randn(2, 16, device=device))
 
@@ -189,7 +200,9 @@ class TestSiluAndMulNumerical:
 
     def test_3d_input(self, device):
         """Test with 3D input tensor."""
-        from vllm_fl.dispatch.backends.reference.impl.activation import silu_and_mul_torch
+        from vllm_fl.dispatch.backends.reference.impl.activation import (
+            silu_and_mul_torch,
+        )
 
         x = torch.randn(2, 4, 16, device=device)
 
@@ -209,7 +222,9 @@ class TestRMSNormNumerical:
 
     def test_basic_correctness(self, device):
         """Test basic numerical correctness."""
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         hidden_size = 128
         x = torch.randn(2, hidden_size, device=device, dtype=torch.float32)
@@ -224,7 +239,9 @@ class TestRMSNormNumerical:
 
     def test_with_residual(self, device):
         """Test RMS norm with residual connection."""
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         hidden_size = 128
         x = torch.randn(2, hidden_size, device=device, dtype=torch.float32)
@@ -241,7 +258,9 @@ class TestRMSNormNumerical:
 
     def test_output_shape(self, hidden_size_config, device):
         """Test that output shape matches input shape."""
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         batch, hidden = hidden_size_config
         x = torch.randn(batch, hidden, device=device)
@@ -255,7 +274,9 @@ class TestRMSNormNumerical:
 
     def test_dtype_preservation(self, dtype, device):
         """Test that dtype is preserved."""
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         hidden_size = 128
         x = torch.randn(2, hidden_size, device=device, dtype=dtype)
@@ -269,7 +290,9 @@ class TestRMSNormNumerical:
 
     def test_normalization_effect(self, device):
         """Test that normalization actually normalizes the tensor."""
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         hidden_size = 128
         # Create input with known variance
@@ -291,7 +314,9 @@ class TestRMSNormNumerical:
 
     def test_epsilon_effect(self, device):
         """Test that epsilon prevents division by zero."""
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         hidden_size = 128
         x = torch.zeros(2, hidden_size, device=device)
@@ -307,7 +332,9 @@ class TestRMSNormNumerical:
 
     def test_weight_scaling(self, device):
         """Test that weight properly scales the output."""
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         hidden_size = 128
         x = torch.randn(2, hidden_size, device=device)
@@ -325,7 +352,9 @@ class TestRMSNormNumerical:
 
     def test_3d_input(self, device):
         """Test with 3D input tensor (batch, seq, hidden)."""
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         x = torch.randn(2, 4, 128, device=device)
         weight = torch.ones(128, device=device)
@@ -348,7 +377,9 @@ class TestRotaryEmbeddingNumerical:
 
     def test_basic_correctness_4d(self, device):
         """Test basic numerical correctness with 4D tensors."""
-        from vllm_fl.dispatch.backends.reference.impl.rotary import rotary_embedding_torch
+        from vllm_fl.dispatch.backends.reference.impl.rotary import (
+            rotary_embedding_torch,
+        )
 
         batch, num_heads, seq_len, head_dim = 2, 4, 8, 64
         max_seq_len = 16
@@ -382,7 +413,9 @@ class TestRotaryEmbeddingNumerical:
 
     def test_output_shape_4d(self, device):
         """Test that output shapes match input shapes for 4D tensors."""
-        from vllm_fl.dispatch.backends.reference.impl.rotary import rotary_embedding_torch
+        from vllm_fl.dispatch.backends.reference.impl.rotary import (
+            rotary_embedding_torch,
+        )
 
         batch, num_heads, seq_len, head_dim = 4, 8, 16, 32
         max_seq_len = 32
@@ -409,7 +442,9 @@ class TestRotaryEmbeddingNumerical:
 
     def test_output_shape_3d(self, device):
         """Test that output shapes match input shapes for 3D tensors."""
-        from vllm_fl.dispatch.backends.reference.impl.rotary import rotary_embedding_torch
+        from vllm_fl.dispatch.backends.reference.impl.rotary import (
+            rotary_embedding_torch,
+        )
 
         seq_len, num_heads, head_dim = 16, 8, 32
         max_seq_len = 32
@@ -436,7 +471,9 @@ class TestRotaryEmbeddingNumerical:
 
     def test_dtype_preservation_3d(self, dtype, device):
         """Test that dtype is preserved with 3D tensors."""
-        from vllm_fl.dispatch.backends.reference.impl.rotary import rotary_embedding_torch
+        from vllm_fl.dispatch.backends.reference.impl.rotary import (
+            rotary_embedding_torch,
+        )
 
         seq_len, num_heads, head_dim = 8, 4, 32
         max_seq_len = 16
@@ -462,7 +499,9 @@ class TestRotaryEmbeddingNumerical:
 
     def test_interleaved_vs_neox_style(self, device):
         """Test both interleaved and neox rotary styles."""
-        from vllm_fl.dispatch.backends.reference.impl.rotary import rotary_embedding_torch
+        from vllm_fl.dispatch.backends.reference.impl.rotary import (
+            rotary_embedding_torch,
+        )
 
         seq_len, num_heads, head_dim = 8, 4, 64
         max_seq_len = 16
@@ -502,7 +541,9 @@ class TestRotaryEmbeddingNumerical:
 
     def test_rotary_embedding_mathematically(self, device):
         """Test that rotary embedding produces expected rotation behavior."""
-        from vllm_fl.dispatch.backends.reference.impl.rotary import rotary_embedding_torch
+        from vllm_fl.dispatch.backends.reference.impl.rotary import (
+            rotary_embedding_torch,
+        )
 
         seq_len, num_heads, head_dim = 4, 2, 8
         max_seq_len = 8
@@ -538,7 +579,9 @@ class TestCrossImplementationConsistency:
 
     def test_silu_reference_matches_pytorch(self, device):
         """Test that reference implementation matches PyTorch exactly."""
-        from vllm_fl.dispatch.backends.reference.impl.activation import silu_and_mul_torch
+        from vllm_fl.dispatch.backends.reference.impl.activation import (
+            silu_and_mul_torch,
+        )
 
         x = torch.randn(4, 32, device=device)
 
@@ -550,7 +593,9 @@ class TestCrossImplementationConsistency:
 
     def test_rms_norm_reference_matches_pytorch(self, device):
         """Test that reference RMS norm matches our baseline."""
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         x = torch.randn(4, 64, device=device)
         weight = torch.randn(64, device=device)
@@ -572,7 +617,9 @@ class TestEdgeCases:
 
     def test_silu_single_element(self, device):
         """Test SiLU with single element batch."""
-        from vllm_fl.dispatch.backends.reference.impl.activation import silu_and_mul_torch
+        from vllm_fl.dispatch.backends.reference.impl.activation import (
+            silu_and_mul_torch,
+        )
 
         x = torch.randn(1, 4, device=device)
         result = silu_and_mul_torch(None, x)
@@ -582,7 +629,9 @@ class TestEdgeCases:
 
     def test_rms_norm_single_element(self, device):
         """Test RMS norm with single element batch."""
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         x = torch.randn(1, 64, device=device)
         weight = torch.ones(64, device=device)
@@ -595,8 +644,12 @@ class TestEdgeCases:
 
     def test_very_small_values(self, device):
         """Test with very small input values."""
-        from vllm_fl.dispatch.backends.reference.impl.activation import silu_and_mul_torch
-        from vllm_fl.dispatch.backends.reference.impl.normalization import rms_norm_torch
+        from vllm_fl.dispatch.backends.reference.impl.activation import (
+            silu_and_mul_torch,
+        )
+        from vllm_fl.dispatch.backends.reference.impl.normalization import (
+            rms_norm_torch,
+        )
 
         x_silu = torch.randn(2, 8, device=device) * 1e-7
         x_norm = torch.randn(2, 32, device=device) * 1e-7

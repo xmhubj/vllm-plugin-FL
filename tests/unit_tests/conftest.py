@@ -7,10 +7,10 @@ This module provides shared fixtures for all unit tests.
 """
 
 import os
-import pytest
-import torch
 from unittest.mock import MagicMock, NonCallableMagicMock
 
+import pytest
+import torch
 
 # =============================================================================
 # Environment Detection Helpers
@@ -33,7 +33,7 @@ def has_flagcx():
 def has_vllm_profiler():
     """Check if vllm profiler is available."""
     try:
-        from vllm.profiler.wrapper import TorchProfilerWrapper
+        from vllm.profiler.wrapper import TorchProfilerWrapper  # noqa: F401
         return True
     except ImportError:
         return False

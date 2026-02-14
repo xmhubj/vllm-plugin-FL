@@ -9,10 +9,10 @@ unit_tests/compilation/test_graph.py. This file only contains functional
 tests that require actual GPU execution.
 """
 
-import pytest
-import torch
 from dataclasses import dataclass
 
+import pytest
+import torch
 
 # Mark all tests as requiring GPU
 pytestmark = pytest.mark.gpu

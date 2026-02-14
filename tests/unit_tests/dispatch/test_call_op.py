@@ -9,23 +9,24 @@ works correctly from call_op -> manager -> registry -> implementation.
 """
 
 import os
-import pytest
 from unittest.mock import patch
 
+import pytest
+
 from vllm_fl.dispatch import (
-    call_op,
-    resolve_op,
-    get_default_manager,
-    reset_default_manager,
-    OpImpl,
+    PREFER_REFERENCE,
+    PREFER_VENDOR,
     BackendImplKind,
     BackendPriority,
+    OpImpl,
     SelectionPolicy,
-    set_global_policy,
+    call_op,
+    get_default_manager,
+    reset_default_manager,
     reset_global_policy,
+    resolve_op,
+    set_global_policy,
     with_preference,
-    PREFER_VENDOR,
-    PREFER_REFERENCE,
 )
 
 

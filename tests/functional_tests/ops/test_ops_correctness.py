@@ -10,7 +10,6 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-
 # Skip all tests in this module if GPU not available
 pytestmark = pytest.mark.gpu
 

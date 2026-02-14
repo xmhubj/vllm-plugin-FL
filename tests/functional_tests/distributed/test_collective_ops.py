@@ -8,10 +8,10 @@ NOTE: These tests require multiple GPUs and a distributed environment.
 They are designed to be run with pytest-mpi or similar multi-process test runners.
 """
 
-import pytest
-import torch
 from unittest.mock import MagicMock
 
+import pytest
+import torch
 
 # Mark all tests as requiring multiple GPUs
 pytestmark = [pytest.mark.multi_gpu, pytest.mark.gpu]
@@ -31,7 +31,9 @@ class TestCollectiveOpsBasic:
     def test_pyflagcx_import(self):
         """Test that PyFlagcxCommunicator can be imported."""
         try:
-            from vllm_fl.distributed.device_communicators.flagcx import PyFlagcxCommunicator
+            from vllm_fl.distributed.device_communicators.flagcx import (
+                PyFlagcxCommunicator,
+            )
             assert PyFlagcxCommunicator is not None
         except ImportError as e:
             pytest.skip(f"PyFlagcxCommunicator not available: {e}")

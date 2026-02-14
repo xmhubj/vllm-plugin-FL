@@ -10,6 +10,7 @@ Integration tests for actual distributed operations should be in functional_test
 """
 
 import os
+
 import pytest
 
 
@@ -23,7 +24,7 @@ def has_flagcx():
         return False
     # Also check Python bindings
     try:
-        from plugin.interservice.flagcx_wrapper import flagcxDataTypeEnum
+        from plugin.interservice.flagcx_wrapper import flagcxDataTypeEnum  # noqa: F401
         return True
     except ImportError:
         return False

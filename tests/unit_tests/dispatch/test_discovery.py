@@ -5,16 +5,17 @@ Tests for dispatch discovery module.
 """
 
 import os
+from unittest.mock import MagicMock, NonCallableMagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, NonCallableMagicMock
 
 from vllm_fl.dispatch.discovery import (
-    discover_plugins,
-    discover_from_env_modules,
-    get_discovered_plugins,
-    clear_discovered_plugins,
-    _call_register_function,
     PLUGIN_MODULES_ENV,
+    _call_register_function,
+    clear_discovered_plugins,
+    discover_from_env_modules,
+    discover_plugins,
+    get_discovered_plugins,
 )
 
 
@@ -108,13 +109,15 @@ class TestDiscoverPlugins:
         assert result == 0
 
     def test_empty_discovery(self):
-        with patch.dict(os.environ, {PLUGIN_MODULES_ENV: ""}):
-            with patch(
+        with (
+            patch.dict(os.environ, {PLUGIN_MODULES_ENV: ""}),
+            patch(
                 "vllm_fl.dispatch.discovery._get_entry_points", return_value=[]
-            ):
-                registry = MagicMock()
-                result = discover_plugins(registry)
-                assert result == 0
+            ),
+        ):
+            registry = MagicMock()
+            result = discover_plugins(registry)
+            assert result == 0
 
 
 class TestGetDiscoveredPlugins:

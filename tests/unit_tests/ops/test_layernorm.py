@@ -4,9 +4,10 @@
 Tests for layernorm ops.
 """
 
+from unittest.mock import patch
+
 import pytest
 import torch
-from unittest.mock import patch
 
 
 class TestRMSNormFL:

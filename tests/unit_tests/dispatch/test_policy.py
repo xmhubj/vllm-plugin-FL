@@ -5,21 +5,22 @@ Tests for dispatch policy module.
 """
 
 import os
-import pytest
 import tempfile
 from unittest.mock import patch
 
+import pytest
+
 from vllm_fl.dispatch.policy import (
-    SelectionPolicy,
-    PolicyManager,
     PREFER_DEFAULT,
-    PREFER_VENDOR,
     PREFER_REFERENCE,
+    PREFER_VENDOR,
     VALID_PREFER_VALUES,
+    PolicyManager,
+    SelectionPolicy,
     get_policy,
-    set_global_policy,
-    reset_global_policy,
     policy_context,
+    reset_global_policy,
+    set_global_policy,
     with_preference,
     with_strict_mode,
 )

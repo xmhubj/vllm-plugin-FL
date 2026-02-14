@@ -11,25 +11,26 @@ This module tests the core OpManager class which handles:
 """
 
 import os
-import pytest
 import threading
 from unittest.mock import patch
 
+import pytest
+
 from vllm_fl.dispatch.manager import (
     OpManager,
+    _OpManagerState,
     get_default_manager,
     reset_default_manager,
-    _OpManagerState,
+)
+from vllm_fl.dispatch.policy import (
+    PREFER_REFERENCE,
+    PREFER_VENDOR,
+    SelectionPolicy,
+    reset_global_policy,
+    set_global_policy,
 )
 from vllm_fl.dispatch.registry import OpRegistry
-from vllm_fl.dispatch.types import OpImpl, BackendImplKind, BackendPriority
-from vllm_fl.dispatch.policy import (
-    SelectionPolicy,
-    set_global_policy,
-    reset_global_policy,
-    PREFER_VENDOR,
-    PREFER_REFERENCE,
-)
+from vllm_fl.dispatch.types import BackendImplKind, BackendPriority, OpImpl
 
 
 class TestOpManagerState:
