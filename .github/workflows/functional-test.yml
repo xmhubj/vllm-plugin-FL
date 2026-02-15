@@ -61,7 +61,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -e .
-          pip install pytest
+          pip install pytest modelscope>=1.18.1
 
       - name: Run functional ops tests
         run: |
