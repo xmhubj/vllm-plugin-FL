@@ -78,5 +78,4 @@ jobs:
       - name: Run serving tests
         run: |
           pytest tests/functional_tests/serving/ \
-            -v --tb=short -s \
-            --timeout=600
+            -v --tb=short -s
