@@ -1,8 +1,6 @@
 import os
-from typing import List
 
 from setuptools import find_packages, setup
-from setuptools_scm import get_version
 
 ROOT_DIR = os.path.dirname(__file__)
 VERSION = "0.0.0"
@@ -22,10 +20,10 @@ def read_readme() -> str:
         return ""
 
 
-def get_requirements() -> List[str]:
+def get_requirements() -> list[str]:
     """Get Python package dependencies from requirements.txt."""
 
-    def _read_requirements(filename: str) -> List[str]:
+    def _read_requirements(filename: str) -> list[str]:
         with open(get_path(filename)) as f:
             requirements = f.read().strip().split("\n")
         resolved_requirements = []
@@ -46,7 +44,7 @@ def get_requirements() -> List[str]:
 
 
 setup(
-    name='vllm_fl',
+    name="vllm_fl",
     # Follow:
     # https://packaging.python.org/en/latest/specifications/version-specifiers
     version=VERSION,
@@ -74,8 +72,19 @@ setup(
     packages=find_packages(exclude=("docs", "examples", "tests*")),
     python_requires=">=3.9",
     install_requires=get_requirements(),
-    extras_require={},
-    entry_points={'vllm.platform_plugins': ["fl = vllm_fl:register"],
-                  'vllm.general_plugins': ["fl = vllm_fl:register_model"]}
+    extras_require={
+        "test": [
+            "pytest",
+            "pytest-cov",
+            "numpy",
+            "torch>=2.7.1",
+            "pyyaml",
+            "decorator",
+            "vllm[audio]==0.13.0",
+        ],
+    },
+    entry_points={
+        "vllm.platform_plugins": ["fl = vllm_fl:register"],
+        "vllm.general_plugins": ["fl = vllm_fl:register_model"],
+    },
 )
-
