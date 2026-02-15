@@ -48,6 +48,7 @@ def vllm_server():
         "512",
         "--gpu-memory-utilization",
         "0.85",
+        "--enforce-eager",
         "--host",
         HOST,
         "--port",
