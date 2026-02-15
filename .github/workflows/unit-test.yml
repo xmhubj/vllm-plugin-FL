@@ -21,7 +21,7 @@ jobs:
     name: Unit Tests
     runs-on: [self-hosted, nvidia, gpu-8]
     container:
-      image: vllm-plugin-fl:ci
+      image: harbor.baai.ac.cn/vllm-plugin-fl:ci
       volumes:
         - /data:/data
       options: >-

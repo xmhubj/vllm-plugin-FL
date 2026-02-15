@@ -22,7 +22,7 @@ jobs:
     runs-on: [self-hosted, nvidia, gpu-8]
     timeout-minutes: ${{ inputs.timeout-minutes }}
     container:
-      image: vllm-plugin-fl:ci
+      image: harbor.baai.ac.cn/vllm-plugin-fl:ci
       volumes:
         - /data:/data
       options: >-
