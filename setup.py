@@ -69,6 +69,9 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     packages=find_packages(exclude=("docs", "examples", "tests*")),
+    package_data={
+        "vllm_fl.dispatch.config": ["*.yaml"],
+    },
     python_requires=">=3.10",
     install_requires=get_requirements(),
     entry_points={
