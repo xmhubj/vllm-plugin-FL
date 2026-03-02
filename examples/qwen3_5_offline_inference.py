@@ -5,10 +5,10 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 
 import os
+
 os.environ["VLLM_ALLOW_LONG_MAX_MODEL_LEN"] = "1"
-from vllm import LLM, SamplingParams
-import torch
-from vllm.config.compilation import CompilationConfig
+
+from vllm import LLM, SamplingParams  # noqa: E402
 
 
 if __name__ == '__main__':
