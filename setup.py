@@ -58,7 +58,6 @@ setup(
         "Homepage": "https://github.com/flagos-ai/vllm-plugin-FL",
     },
     classifiers=[
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
@@ -70,19 +69,8 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     packages=find_packages(exclude=("docs", "examples", "tests*")),
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     install_requires=get_requirements(),
-    extras_require={
-        "test": [
-            "pytest",
-            "pytest-cov",
-            "numpy",
-            "torch>=2.7.1",
-            "pyyaml",
-            "decorator",
-            "vllm[audio]==0.13.0",
-        ],
-    },
     entry_points={
         "vllm.platform_plugins": ["fl = vllm_fl:register"],
         "vllm.general_plugins": ["fl = vllm_fl:register_model"],

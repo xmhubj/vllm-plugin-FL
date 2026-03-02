@@ -29,6 +29,7 @@ def get_call_op():
         return _call_op
     except ImportError:
         pytest.skip("vllm_fl.dispatch not available")
+        return None  # unreachable, but satisfies consistent-return checks
 
 
 class TestSiluAndMulCorrectness:
