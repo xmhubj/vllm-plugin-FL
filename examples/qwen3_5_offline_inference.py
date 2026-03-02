@@ -8,7 +8,7 @@ import os
 
 os.environ["VLLM_ALLOW_LONG_MAX_MODEL_LEN"] = "1"
 
-from vllm import LLM, SamplingParams  # noqa: E402
+from vllm import LLM, SamplingParams
 
 
 if __name__ == '__main__':
