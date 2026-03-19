@@ -20,7 +20,7 @@ import os
 import pytest
 import requests
 
-from tests.e2e_tests.serving.server_helper import VllmServer
+from tests.e2e_tests.serving.server_helper import _NO_PROXY, VllmServer
 from tests.utils.model_config import ModelConfig
 
 # ---------------------------------------------------------------------------
@@ -91,7 +91,7 @@ _REQUEST_MODEL = _CFG.serve.request_model(_CFG.model)
 @pytest.mark.e2e
 def test_model_list(base_url, headers):
     """Service must expose the loaded model in /v1/models."""
-    response = requests.get(f"{base_url}/models", headers=headers)
+    response = requests.get(f"{base_url}/models", headers=headers, proxies=_NO_PROXY)
     assert response.status_code == 200
     models = response.json()["data"]
     assert any(m["id"] == _REQUEST_MODEL for m in models)
@@ -116,6 +116,7 @@ def _run_completion(base_url: str, headers: dict) -> None:
         f"{base_url}/completions",
         headers=headers,
         json=payload,
+        proxies=_NO_PROXY,
     )
 
     assert response.status_code == 200
@@ -163,6 +164,7 @@ def _run_chat_non_streaming(
         f"{base_url}/chat/completions",
         headers=headers,
         json=payload,
+        proxies=_NO_PROXY,
     )
     assert response.status_code == 200
 
@@ -181,11 +183,13 @@ def _run_chat_streaming(
     messages: list[dict],
 ) -> None:
     """Streaming chat completions via OpenAI SDK."""
+    import httpx
     from openai import OpenAI
 
     client = OpenAI(
         api_key=serve.api_key or "EMPTY",
         base_url=base_url,
+        http_client=httpx.Client(proxy=None),
     )
 
     create_kwargs: dict = {
@@ -221,6 +225,7 @@ def _run_embedding(base_url: str, headers: dict) -> None:
         f"{base_url}/embeddings",
         headers=headers,
         json=payload,
+        proxies=_NO_PROXY,
     )
     assert response.status_code == 200
 

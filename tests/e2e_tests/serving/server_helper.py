@@ -20,8 +20,8 @@ Usage in test fixtures::
 
 from __future__ import annotations
 
+import contextlib
 import os
-import signal
 import socket
 import subprocess
 import tempfile
@@ -30,6 +30,9 @@ from dataclasses import dataclass, field
 
 import pytest
 import requests
+
+# Bypass HTTP proxies for local server connections.
+_NO_PROXY = {"http": None, "https": None}
 
 
 def _get_free_port() -> int:
@@ -89,9 +92,9 @@ class VllmServer:
         )
         self._process = subprocess.Popen(
             cmd,
+            stdin=subprocess.DEVNULL,
             stdout=self._log_file,
             stderr=subprocess.STDOUT,
-            preexec_fn=os.setsid,
         )
         self._wait_ready()
 
@@ -100,14 +103,21 @@ class VllmServer:
             return
         print("\n[Teardown] Shutting down vLLM service...")
         try:
-            os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
+            # Send SIGTERM to the main process; vLLM handles child cleanup.
+            self._process.terminate()
             self._process.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            self._process.kill()
+            self._process.wait(timeout=10)
         except Exception:
             self._process.kill()
         finally:
             if self._log_file:
                 self._log_file.close()
-                os.unlink(self._log_file.name)
+                if getattr(self, "_keep_log", False):
+                    print(f"[Teardown] Log preserved: {self._log_file.name}")
+                else:
+                    os.unlink(self._log_file.name)
             self._process = None
 
     def __enter__(self) -> VllmServer:
@@ -122,7 +132,12 @@ class VllmServer:
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
 
-        print("[Setup] Waiting for service to be ready...")
+        # Use /health for readiness check — it returns 200 once the engine
+        # core IPC channel is established.  /v1/models may return 503 for
+        # a long time in vLLM V1's multi-process architecture even after
+        # the HTTP server is accepting connections.
+        health_url = f"http://{self.host}:{self.port}/health"
+        print(f"[Setup] Waiting for service to be ready (polling {health_url})...")
         for i in range(self.max_retries):
             if self._process.poll() is not None:
                 self._fail_with_logs(
@@ -132,26 +147,40 @@ class VllmServer:
 
             try:
                 resp = requests.get(
-                    f"{self.base_url}/models",
-                    headers=headers,
-                    timeout=5,
+                    health_url, headers=headers, timeout=10, proxies=_NO_PROXY
                 )
                 if resp.status_code == 200:
                     print(f"[Setup] vLLM service ready (port={self.port})")
                     return
-            except requests.exceptions.ConnectionError:
-                pass
+                detail = ""
+                with contextlib.suppress(Exception):
+                    detail = f" body={resp.text[:200]}"
+                print(
+                    f"[Setup] Waiting ({i + 1}/{self.max_retries})"
+                    f" status={resp.status_code}{detail}"
+                )
+            except requests.exceptions.RequestException as exc:
+                print(
+                    f"[Setup] Waiting ({i + 1}/{self.max_retries}) {type(exc).__name__}"
+                )
 
-            print(f"[Setup] Waiting ({i + 1}/{self.max_retries})...")
             time.sleep(self.poll_interval)
 
         self._fail_with_logs("vLLM service startup timed out")
 
     def _fail_with_logs(self, message: str) -> None:
         logs = ""
+        log_path = ""
         if self._log_file:
             self._log_file.flush()
-            with open(self._log_file.name) as f:
+            log_path = self._log_file.name
+            with open(log_path) as f:
                 logs = f.read()
+        # Keep log file for post-mortem inspection
+        self._keep_log = True
         self.stop()
-        pytest.fail(f"{message}.\nLogs (last 8000 chars):\n{logs[-8000:]}")
+        tail = logs[-16000:] if len(logs) > 16000 else logs
+        extra = f"\nFull log: {log_path}" if log_path else ""
+        pytest.fail(
+            f"{message}.{extra}\nLogs ({len(logs)} chars, showing tail):\n{tail}"
+        )
