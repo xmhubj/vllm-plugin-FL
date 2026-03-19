@@ -30,4 +30,6 @@ extend-exclude = [
     ".git/**",
     "vllm_fl/",
     "vllm_fl/**",
+    "tests/",
+    "tests/**",
 ]
