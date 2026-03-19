@@ -27,5 +27,3 @@ jobs:
 
       - name: Typos check
         uses: crate-ci/typos@v1
-        with:
-          config: ""

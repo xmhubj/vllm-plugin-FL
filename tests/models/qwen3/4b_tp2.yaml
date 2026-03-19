@@ -1,0 +1,16 @@
+# Qwen3-4B model configuration (TP=2)
+
+llm:
+  model: "/data/models/Qwen/Qwen3-4B"
+  tensor_parallel_size: 2
+  max_model_len: 8192
+  gpu_memory_utilization: 0.8
+  trust_remote_code: true
+
+generate:
+  prompts:
+    - "Hello, my name is"
+    - "The capital of France is"
+  sampling:
+    max_tokens: 10
+    temperature: 0.0

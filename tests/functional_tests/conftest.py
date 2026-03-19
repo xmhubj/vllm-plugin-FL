@@ -2,32 +2,10 @@
 
 """
 Functional test fixtures and configuration.
+
+Functional tests validate operator/component correctness (ops, compilation,
+distributed). They require GPU but not large model files.
+
+Note: Common fixtures (device, has_accelerator, markers) are inherited
+from the root tests/conftest.py. Only functional-specific fixtures belong here.
 """
-
-import pytest
-import torch
-
-
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "gpu: marks tests as requiring GPU")
-    config.addinivalue_line(
-        "markers", "multi_gpu: marks tests as requiring multiple GPUs"
-    )
-    config.addinivalue_line(
-        "markers", "flaggems: marks tests as requiring flag_gems library"
-    )
-
-
-@pytest.fixture(scope="session")
-def has_gpu():
-    """Check if GPU is available."""
-    return torch.cuda.is_available()
-
-
-@pytest.fixture(scope="session")
-def device(has_gpu):
-    """Get the test device."""
-    if has_gpu:
-        return torch.device("cuda:0")
-    return torch.device("cpu")
