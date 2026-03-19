@@ -12,7 +12,7 @@ runner_labels:
   - Linux
   - ARM64
   - ascend
-  - npus-16
+  - npu-16
 
 # Container volumes (hardware-specific paths)
 container_volumes:

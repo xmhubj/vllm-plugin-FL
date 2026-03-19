@@ -12,7 +12,7 @@ runner_labels:
   - Linux
   - X64
   - nvidia
-  - gpus-8
+  - gpu-8
 
 # Container volumes (hardware-specific paths)
 container_volumes:
