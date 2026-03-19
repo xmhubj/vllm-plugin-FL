@@ -50,6 +50,7 @@ test = [
     "pytest-json-report",
     "numpy",
     "requests",
+    "openai",
     "decorator",
     "vllm[audio]==0.13.0",
     "modelscope>=1.18.1",

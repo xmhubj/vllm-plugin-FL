@@ -104,10 +104,19 @@ class ServeConfig:
     Fields:
         api_key: Optional API key for authenticated endpoints.
         extra_engine: Engine param overrides for serving (e.g. dtype).
-        endpoints: List of endpoints to test (``"completion"`` and/or ``"chat"``).
+        endpoints: List of endpoints to test (``"completion"``, ``"chat"``,
+                   ``"embedding"``).
         completion_prompt: Prompt string for ``/v1/completions`` endpoint.
         chat_messages: Messages list for ``/v1/chat/completions`` endpoint.
         max_tokens: Max tokens for serving requests.
+        served_model_name: Alias passed via ``--served-model-name``.
+            Empty string means use the model path directly.
+        stream: Whether to test streaming responses (chat endpoint).
+        sampling: Sampling parameters (temperature, top_p, etc.) injected
+            into the request payload.
+        extra_body: Free-form dict passed as ``extra_body`` to the OpenAI SDK
+            or merged into the request JSON (e.g. top_k, chat_template_kwargs).
+        embedding_input: Input text for ``/v1/embeddings`` endpoint tests.
     """
 
     api_key: str = ""
@@ -116,6 +125,15 @@ class ServeConfig:
     completion_prompt: str = "Hello"
     chat_messages: list[dict[str, Any]] = field(default_factory=list)
     max_tokens: int = 50
+    served_model_name: str = ""
+    stream: bool = False
+    sampling: dict[str, Any] = field(default_factory=dict)
+    extra_body: dict[str, Any] = field(default_factory=dict)
+    embedding_input: str = ""
+
+    def request_model(self, model_path: str) -> str:
+        """Return the model name to use in API requests."""
+        return self.served_model_name or model_path
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> ServeConfig:
@@ -126,6 +144,11 @@ class ServeConfig:
             completion_prompt=raw.get("completion_prompt", "Hello"),
             chat_messages=raw.get("chat_messages", []),
             max_tokens=raw.get("max_tokens", 50),
+            served_model_name=raw.get("served_model_name", ""),
+            stream=raw.get("stream", False),
+            sampling=raw.get("sampling", {}),
+            extra_body=raw.get("extra_body", {}),
+            embedding_input=raw.get("embedding_input", ""),
         )
 
 

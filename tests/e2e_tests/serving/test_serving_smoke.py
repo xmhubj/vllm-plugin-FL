@@ -9,7 +9,10 @@ Driven by environment variables set by ``tests/run.py``:
 - ``FL_TEST_CASE``:  Case name within the family (e.g. ``next_tp8``, ``o45_tp2``)
 
 Loads ``tests/models/<model>/<case>.yaml``, starts a vLLM server with the
-engine config, and validates configured endpoints (completion and/or chat).
+engine config, and validates configured endpoints (completion, chat, embedding).
+
+Supports both non-streaming (raw requests) and streaming (OpenAI SDK) modes,
+controlled by the ``serve.stream`` flag in the model YAML.
 """
 
 import os
@@ -58,6 +61,7 @@ def server():
         model=_CFG.model,
         tp_size=_CFG.engine.get("tensor_parallel_size", 1),
         api_key=serve.api_key,
+        served_model_name=serve.served_model_name,
         extra_args=extra_args,
     ) as srv:
         yield srv
@@ -81,6 +85,8 @@ def headers():
 # Tests
 # ---------------------------------------------------------------------------
 
+_REQUEST_MODEL = _CFG.serve.request_model(_CFG.model)
+
 
 @pytest.mark.e2e
 def test_model_list(base_url, headers):
@@ -88,18 +94,24 @@ def test_model_list(base_url, headers):
     response = requests.get(f"{base_url}/models", headers=headers)
     assert response.status_code == 200
     models = response.json()["data"]
-    assert any(m["id"] == _CFG.model for m in models)
+    assert any(m["id"] == _REQUEST_MODEL for m in models)
+
+
+# ---------------------------------------------------------------------------
+# Endpoint runners
+# ---------------------------------------------------------------------------
 
 
 def _run_completion(base_url: str, headers: dict) -> None:
     """Validate /v1/completions endpoint."""
     serve = _CFG.serve
     payload = {
-        "model": _CFG.model,
+        "model": _REQUEST_MODEL,
         "prompt": serve.completion_prompt,
         "max_tokens": serve.max_tokens,
-        "temperature": 0,
+        **serve.sampling,
     }
+
     response = requests.post(
         f"{base_url}/completions",
         headers=headers,
@@ -117,16 +129,36 @@ def _run_completion(base_url: str, headers: dict) -> None:
 
 
 def _run_chat(base_url: str, headers: dict) -> None:
-    """Validate /v1/chat/completions endpoint."""
+    """Validate /v1/chat/completions endpoint.
+
+    When ``serve.stream`` is True, uses the OpenAI SDK for streaming.
+    Otherwise, uses a plain requests POST.
+    """
     serve = _CFG.serve
-    messages = serve.chat_messages or [
-        {"role": "user", "content": "Hello"},
-    ]
-    payload = {
-        "model": _CFG.model,
+    messages = serve.chat_messages or [{"role": "user", "content": "Hello"}]
+
+    if serve.stream:
+        _run_chat_streaming(base_url, serve, messages)
+    else:
+        _run_chat_non_streaming(base_url, headers, serve, messages)
+
+
+def _run_chat_non_streaming(
+    base_url: str,
+    headers: dict,
+    serve,
+    messages: list[dict],
+) -> None:
+    """Non-streaming chat completions via raw requests."""
+    payload: dict = {
+        "model": _REQUEST_MODEL,
         "messages": messages,
         "max_tokens": serve.max_tokens,
+        **serve.sampling,
     }
+    if serve.extra_body:
+        payload.update(serve.extra_body)
+
     response = requests.post(
         f"{base_url}/chat/completions",
         headers=headers,
@@ -143,9 +175,66 @@ def _run_chat(base_url: str, headers: dict) -> None:
     print(f"\nResponse: {content}")
 
 
+def _run_chat_streaming(
+    base_url: str,
+    serve,
+    messages: list[dict],
+) -> None:
+    """Streaming chat completions via OpenAI SDK."""
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key=serve.api_key or "EMPTY",
+        base_url=base_url,
+    )
+
+    create_kwargs: dict = {
+        "model": _REQUEST_MODEL,
+        "messages": messages,
+        "max_tokens": serve.max_tokens,
+        "stream": True,
+        **serve.sampling,
+    }
+    if serve.extra_body:
+        create_kwargs["extra_body"] = serve.extra_body
+
+    response = client.chat.completions.create(**create_kwargs)
+
+    text = ""
+    for chunk in response:
+        if chunk.choices and chunk.choices[0].delta.content:
+            text += chunk.choices[0].delta.content
+
+    assert len(text.strip()) > 0, "Streaming response is empty"
+    print(f"\nStreaming response: {text}")
+
+
+def _run_embedding(base_url: str, headers: dict) -> None:
+    """Validate /v1/embeddings endpoint."""
+    serve = _CFG.serve
+    payload = {
+        "model": _REQUEST_MODEL,
+        "input": serve.embedding_input or "Hello world",
+    }
+
+    response = requests.post(
+        f"{base_url}/embeddings",
+        headers=headers,
+        json=payload,
+    )
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "data" in data
+    assert len(data["data"]) > 0
+    assert len(data["data"][0]["embedding"]) > 0
+    print(f"\nEmbedding dimension: {len(data['data'][0]['embedding'])}")
+
+
 _ENDPOINT_RUNNERS = {
     "completion": _run_completion,
     "chat": _run_chat,
+    "embedding": _run_embedding,
 }
 
 

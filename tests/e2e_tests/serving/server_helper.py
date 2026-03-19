@@ -47,6 +47,7 @@ class VllmServer:
     extra_args: list[str] = field(default_factory=list)
     host: str = "127.0.0.1"
     api_key: str = ""
+    served_model_name: str = ""
     max_retries: int = 60
     poll_interval: int = 5
 
@@ -73,6 +74,8 @@ class VllmServer:
         ]
         if self.api_key:
             cmd.extend(["--api-key", self.api_key])
+        if self.served_model_name:
+            cmd.extend(["--served-model-name", self.served_model_name])
         cmd.extend(self.extra_args)
 
         model_short = os.path.basename(self.model)
