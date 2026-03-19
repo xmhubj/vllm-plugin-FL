@@ -20,7 +20,7 @@ serve:
   served_model_name: "qwen"
   endpoints: ["chat"]
   stream: true
-  max_tokens: 1024
+  max_tokens: 256
   chat_messages:
     - role: "user"
       content: "Give me a short introduction to large language models."

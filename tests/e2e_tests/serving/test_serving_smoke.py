@@ -186,10 +186,11 @@ def _run_chat_streaming(
     import httpx
     from openai import OpenAI
 
+    # trust_env=False prevents httpx from reading HTTP_PROXY env vars
     client = OpenAI(
         api_key=serve.api_key or "EMPTY",
         base_url=base_url,
-        http_client=httpx.Client(proxy=None),
+        http_client=httpx.Client(trust_env=False),
     )
 
     create_kwargs: dict = {
