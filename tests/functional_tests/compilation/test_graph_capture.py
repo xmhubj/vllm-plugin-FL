@@ -34,6 +34,7 @@ def _new_graph():
         return torch.npu.NPUGraph()
     else:
         pytest.skip(f"Graph capture not supported on {current_platform.device_type}")
+        return None
 
 
 @contextmanager

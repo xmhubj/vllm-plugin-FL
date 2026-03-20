@@ -92,7 +92,7 @@ jobs:
   e2e-preflight:
     needs: [setup, unit]
     if: needs.setup.outputs.e2e_matrix != '[]'
-    name: "e2e-preflight (${{ inputs.platform }})"
+    name: "E2E Preflight (${{ inputs.platform }})"
     runs-on: ${{ fromJson(needs.setup.outputs.config).runner_labels }}
     timeout-minutes: 10
     container:
@@ -106,14 +106,15 @@ jobs:
       - name: Install project
         run: bash .github/scripts/${{ inputs.platform }}/setup.sh
       - name: Verify import
-        run: python -c "import vllm_fl; print('OK: vllm_fl imported successfully')"
+        run: |
+          python -c "import vllm_fl; print('OK: vllm_fl imported successfully')"
 
   # Slow end-to-end model tests (inference, serving).
   # Grouped by (task, device) — all model/case combos for the same task
   # run inside a single job to avoid repeated container startup.
   # Requires preflight to pass first.
   e2e:
-    needs: [setup, unit, e2e-preflight]
+    needs: [e2e-preflight]
     if: needs.setup.outputs.e2e_matrix != '[]'
     strategy:
       fail-fast: false
