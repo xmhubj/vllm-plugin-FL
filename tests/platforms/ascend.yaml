@@ -41,11 +41,14 @@ unsupported_features: []
 
 # Default environment variables for this platform (applied by run.py before tests start)
 env_defaults:
-  # ATB triggers torch._inductor which spawns a SubprocPool + _read_thread.
-  # The subprocess crashes inside CI containers (NPU drivers inaccessible to child
-  # process), and Ascend's Python 3.11 segfaults reading the broken pipe mid-session.
-  # compile_threads=1 forces in-process compilation — no subprocess, no crash.
-  # Inference speed is unaffected; only compilation parallelism is reduced.
+  # ATB internally invokes torch.compile / dynamo which triggers torch._inductor.
+  # In CI functional tests we do not need compiled kernels — disable dynamo entirely
+  # so ATB falls back to eager execution and no compiled objects are created in-process.
+  # This prevents segfaults in Ascend's Python 3.11 build during pytest teardown where
+  # GC finalizes compiled kernel objects whose C-level destructors crash on NPU teardown.
+  TORCHDYNAMO_DISABLE: "1"
+  # Safety net: if any code path still reaches inductor despite TORCHDYNAMO_DISABLE,
+  # keep compile_threads=1 to prevent subprocess creation (broken-pipe segfault).
   TORCHINDUCTOR_COMPILE_THREADS: "1"
 
 # ---- Device-specific test configurations ------------------------------------
