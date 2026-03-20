@@ -40,9 +40,13 @@ device_overrides: {}
 unsupported_features: []
 
 # Default environment variables for this platform (applied by run.py before tests start)
-# env_defaults:
-#   ASCEND_LAUNCH_BLOCKING: "0"
-#   HCCL_ALGO: "level0:NA;level1:Ring"
+env_defaults:
+  # ATB triggers torch._inductor which spawns a SubprocPool + _read_thread.
+  # The subprocess crashes inside CI containers (NPU drivers inaccessible to child
+  # process), and Ascend's Python 3.11 segfaults reading the broken pipe mid-session.
+  # compile_threads=1 forces in-process compilation — no subprocess, no crash.
+  # Inference speed is unaffected; only compilation parallelism is reduced.
+  TORCHINDUCTOR_COMPILE_THREADS: "1"
 
 # ---- Device-specific test configurations ------------------------------------
 910b:

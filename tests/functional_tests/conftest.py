@@ -12,16 +12,12 @@ from the root tests/conftest.py. Only functional-specific fixtures belong here.
 
 
 def pytest_sessionfinish(session, exitstatus):
-    """Prevent inductor _read_thread segfault on Ascend NPU during interpreter teardown.
+    """Safety net: shut down any residual inductor SubprocPool before GC teardown.
 
-    Root cause: ATB (Ascend Tensor Backend) internally triggers torch._inductor,
-    which spawns a SubprocPool with a daemon _read_thread blocked on recv().
-    When Python GC later destroys the pool, the subprocess pipe closes and
-    Ascend's Python 3.11 build segfaults in recv() instead of raising EOFError.
-
-    Fix: explicitly close the subprocess stdin and join the read thread HERE,
-    before Python GC runs — no performance penalty, subprocess pool still works
-    normally during the test session.
+    Primary fix is TORCHINDUCTOR_COMPILE_THREADS=1 in ascend.yaml (prevents
+    subprocess creation). This hook handles the edge case where a pool was
+    created anyway, cleaning it up before Python GC closes the pipe and
+    triggers a segfault in _read_thread on Ascend's Python 3.11 build.
     """
     import contextlib
     import threading
