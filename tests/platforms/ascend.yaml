@@ -40,16 +40,7 @@ device_overrides: {}
 unsupported_features: []
 
 # Default environment variables for this platform (applied by run.py before tests start)
-env_defaults:
-  # ATB internally invokes torch.compile / dynamo which triggers torch._inductor.
-  # In CI functional tests we do not need compiled kernels — disable dynamo entirely
-  # so ATB falls back to eager execution and no compiled objects are created in-process.
-  # This prevents segfaults in Ascend's Python 3.11 build during pytest teardown where
-  # GC finalizes compiled kernel objects whose C-level destructors crash on NPU teardown.
-  TORCHDYNAMO_DISABLE: "1"
-  # Safety net: if any code path still reaches inductor despite TORCHDYNAMO_DISABLE,
-  # keep compile_threads=1 to prevent subprocess creation (broken-pipe segfault).
-  TORCHINDUCTOR_COMPILE_THREADS: "1"
+env_defaults: {}
 
 # ---- Device-specific test configurations ------------------------------------
 910b:

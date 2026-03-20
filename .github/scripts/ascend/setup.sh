@@ -3,5 +3,5 @@
 # Setup script for Ascend NPU CI environment.
 set -euo pipefail
 
-pip install --upgrade pip setuptools
+pip install --upgrade pip "setuptools>=77.0.3"
 pip install --no-build-isolation -e ".[test]"
