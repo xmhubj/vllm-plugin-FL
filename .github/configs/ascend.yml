@@ -28,9 +28,6 @@ container_volumes:
 # Container options (hardware-specific settings)
 container_options: >-
   --hostname vllm-plugin-fl
-  --network host
-  -e http_proxy=http://10.6.212.22:17890
-  -e https_proxy=http://10.6.212.22:17890
   --ipc=host
   --privileged
   --device /dev/davinci0

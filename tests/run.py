@@ -35,6 +35,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -91,6 +92,7 @@ class TestRunner:
         task: str | None = None,
         model: str | None = None,
         case: str | None = None,
+        cases: list[dict] | None = None,
         dry_run: bool = False,
         save_gold: bool = False,
         output_dir: str = ".",
@@ -101,6 +103,7 @@ class TestRunner:
         self.task = task
         self.model = model
         self.case = case
+        self.cases = cases  # explicit [{model, case}] allow-list from CI matrix
         self.dry_run = dry_run
         self.save_gold = save_gold
         self.output_dir = Path(output_dir)
@@ -232,6 +235,11 @@ class TestRunner:
         # Filter by case name if specified
         if self.case:
             raw_cases = [c for c in raw_cases if c["case"] == self.case]
+
+        # Apply explicit cases allow-list from CI matrix (PR smart-skip)
+        if self.cases is not None:
+            allowed = {(c["model"], c["case"]) for c in self.cases}
+            raw_cases = [c for c in raw_cases if (c["model"], c["case"]) in allowed]
 
         cases: list[TestCase] = []
         for c in raw_cases:
@@ -436,6 +444,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Test case variant filter (e.g., 4b_tp2)",
     )
     parser.add_argument(
+        "--cases",
+        default=None,
+        help='JSON array of {model, case} dicts to run, e.g. \'[{"model":"qwen3","case":"4b_tp2"}]\'. '
+        "When set, only the listed model/case combinations are executed. "
+        "Takes precedence over --model/--case when filtering e2e tests.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Print commands without executing",
@@ -456,6 +471,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
 
+    cases_filter: list[dict] | None = None
+    if args.cases:
+        cases_filter = json.loads(args.cases)
+
     runner = TestRunner(
         platform=args.platform,
         device=args.device,
@@ -463,6 +482,7 @@ def main(argv: list[str] | None = None) -> int:
         task=args.task,
         model=args.model,
         case=args.case,
+        cases=cases_filter,
         dry_run=args.dry_run,
         save_gold=args.save_gold,
         output_dir=args.output_dir,

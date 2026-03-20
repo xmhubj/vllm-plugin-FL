@@ -39,7 +39,7 @@ on:
 
 jobs:
   functional-test:
-    name: "functional (${{ inputs.platform }})"
+    name: "Functional (${{ inputs.platform }})"
     runs-on: ${{ fromJson(inputs.runner_labels) }}
     timeout-minutes: ${{ inputs.timeout }}
     container:
