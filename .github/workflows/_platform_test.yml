@@ -86,35 +86,11 @@ jobs:
       container_volumes: ${{ toJson(fromJson(needs.setup.outputs.config).container_volumes) }}
       container_options: ${{ fromJson(needs.setup.outputs.config).container_options }}
 
-  # Lightweight preflight check — verify container, device, and install
-  # before fanning out the full e2e matrix.  If this fails, all e2e jobs
-  # are automatically skipped, saving expensive GPU runner time.
-  e2e-preflight:
-    needs: [setup, unit]
-    if: needs.setup.outputs.e2e_matrix != '[]'
-    name: "E2E Preflight (${{ inputs.platform }})"
-    runs-on: ${{ fromJson(needs.setup.outputs.config).runner_labels }}
-    timeout-minutes: 10
-    container:
-      image: ${{ fromJson(needs.setup.outputs.config).ci_image }}
-      volumes: ${{ fromJson(needs.setup.outputs.config).container_volumes }}
-      options: ${{ fromJson(needs.setup.outputs.config).container_options }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check device availability
-        run: bash .github/scripts/${{ inputs.platform }}/check.sh
-      - name: Install project
-        run: bash .github/scripts/${{ inputs.platform }}/setup.sh
-      - name: Verify import
-        run: |
-          python -c "import vllm_fl; print('OK: vllm_fl imported successfully')"
-
   # Slow end-to-end model tests (inference, serving).
   # Grouped by (task, device) — all model/case combos for the same task
   # run inside a single job to avoid repeated container startup.
-  # Requires preflight to pass first.
   e2e:
-    needs: [e2e-preflight]
+    needs: [setup, functional]
     if: needs.setup.outputs.e2e_matrix != '[]'
     strategy:
       fail-fast: false

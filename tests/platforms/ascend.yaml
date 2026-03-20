@@ -39,7 +39,7 @@ device_overrides: {}
 # Example: ["flaggems"] would skip "qwen3_flaggems", "robobrain2_flaggems", etc.
 unsupported_features: []
 
-# Default environment variables for this platform (informational / used by runners)
+# Default environment variables for this platform (applied by run.py before tests start)
 # env_defaults:
 #   ASCEND_LAUNCH_BLOCKING: "0"
 #   HCCL_ALGO: "level0:NA;level1:Ring"
