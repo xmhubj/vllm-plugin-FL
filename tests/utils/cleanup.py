@@ -100,6 +100,7 @@ def _cleanup_cuda() -> None:
                     idx, used, free, total = parts
                     print(f"  GPU {idx}: {used}/{total} MiB used, {free} MiB free")
     except (FileNotFoundError, subprocess.TimeoutExpired):
+        # nvidia-smi not available or timed out — skip memory logging
         pass
 
 
@@ -119,6 +120,7 @@ def _cleanup_ascend() -> None:
                 if "HBM" in line or "Aicore" in line or "NPU" in line:
                     print(f"  {line.strip()}")
     except (FileNotFoundError, subprocess.TimeoutExpired):
+        # npu-smi not available or timed out — skip memory logging
         pass
 
 

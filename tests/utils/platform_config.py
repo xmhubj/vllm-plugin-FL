@@ -235,7 +235,6 @@ class PlatformConfig:
             # Simple list of device names — look for detailed config as top-level keys
             for name in raw_dt:
                 name = str(name)
-                info = raw.get(name, {})
                 device_types[name] = DeviceType(name=name)
 
         # Parse tolerance

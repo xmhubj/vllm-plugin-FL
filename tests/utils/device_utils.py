@@ -35,7 +35,7 @@ def get_backend() -> str:
         if torch.npu.is_available():
             return "ascend"
     except ImportError:
-        pass
+        pass  # torch_npu not installed; ascend backend not available
     return "cpu"
 
 
