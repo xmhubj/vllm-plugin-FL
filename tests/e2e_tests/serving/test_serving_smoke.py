@@ -38,10 +38,11 @@ if not _MODEL or not _CASE:
 
 _CFG = ModelConfig.load(_MODEL, _CASE)
 
-pytestmark = pytest.mark.skipif(
-    not os.path.exists(_CFG.model),
-    reason=f"Model not found: {_CFG.model}",
-)
+if not os.path.exists(_CFG.model):
+    pytest.fail(
+        f"Model not found: {_CFG.model}",
+        pytrace=False,
+    )
 
 
 # ---------------------------------------------------------------------------

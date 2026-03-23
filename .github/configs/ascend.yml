@@ -23,7 +23,7 @@ container_volumes:
   - /usr/local/Ascend/driver:/usr/local/Ascend/driver
   - /usr/local/sbin:/usr/local/sbin
   - /etc/ascend_install.info:/etc/ascend_install.info
-  - /public/flagops/models:/data/models
+  - /data:/data
 
 # Container options (hardware-specific settings)
 container_options: >-
