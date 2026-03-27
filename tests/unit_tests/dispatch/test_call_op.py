@@ -156,6 +156,7 @@ class TestCallOpWithPolicy:
     def reset_all(self):
         reset_default_manager()
         reset_global_policy()
+        set_global_policy(SelectionPolicy())
         yield
         reset_default_manager()
         reset_global_policy()
@@ -197,7 +198,7 @@ class TestCallOpWithPolicy:
                 kind=BackendImplKind.VENDOR,
                 fn=vendor_fn,
                 priority=BackendPriority.VENDOR,
-                vendor="CUDA",
+                vendor="cuda",
             )
         )
         manager.registry.register_impl(
@@ -390,7 +391,7 @@ class TestCallOpIntegration:
                 impl_id="vendor.cuda",
                 kind=BackendImplKind.VENDOR,
                 fn=lambda x: x * 2,
-                vendor="CUDA",
+                vendor="cuda",
             )
         )
         manager.registry.register_impl(

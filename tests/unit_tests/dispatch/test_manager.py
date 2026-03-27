@@ -621,6 +621,7 @@ class TestOpManagerResolveCandidates:
     @pytest.fixture(autouse=True)
     def reset_policy(self):
         reset_global_policy()
+        set_global_policy(SelectionPolicy())
         yield
         reset_global_policy()
 
@@ -656,7 +657,7 @@ class TestOpManagerResolveCandidates:
                 kind=BackendImplKind.VENDOR,
                 fn=fn2,
                 priority=BackendPriority.VENDOR,
-                vendor="CUDA",
+                vendor="cuda",
             )
         )
         registry.register_impl(
