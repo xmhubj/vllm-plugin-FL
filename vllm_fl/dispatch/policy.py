@@ -423,7 +423,14 @@ class PolicyManager:
             prefer_str = PREFER_DEFAULT
 
         if env_strict_str:
-            strict = env_strict_str == "1"
+            if env_strict_str not in ("0", "1"):
+                logger.warning(
+                    f"Invalid VLLM_FL_STRICT value '{env_strict_str}', "
+                    f"expected '0' or '1'. Defaulting to '0' (fallback mode)."
+                )
+                strict = False
+            else:
+                strict = env_strict_str == "1"
         elif platform_policy:
             strict = platform_policy.strict
         else:
