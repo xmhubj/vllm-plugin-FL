@@ -1,7 +1,7 @@
 ARG VLLM_VERSION=0.18.0
 
 # ---------- base stage ----------
-FROM quay.io/ascend/vllm-ascend:nightly-releases-v${VLLM_VERSION} AS base
+FROM quay.io/ascend/vllm-ascend:v${VLLM_VERSION}rc1-a3 AS base
 
 RUN pip install --upgrade pip setuptools
 
