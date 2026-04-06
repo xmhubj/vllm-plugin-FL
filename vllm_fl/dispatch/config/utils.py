@@ -208,7 +208,6 @@ def get_effective_config() -> dict[str, Any]:
     # Return empty config
     return {}
 
-
 def get_vendor_device_map() -> dict[str, dict[str, str]]:
     """Load vendor mapping from Python config module.
 

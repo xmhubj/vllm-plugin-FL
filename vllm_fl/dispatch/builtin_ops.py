@@ -21,7 +21,6 @@ logger = get_logger()
 # Directory containing vendor backends
 _VENDOR_BACKENDS_DIR = os.path.join(os.path.dirname(__file__), "backends", "vendor")
 
-
 def _find_vendor_backend_dir(
     vendor_name: str,
     available_vendor_dirs: set[str],
@@ -60,7 +59,6 @@ def _get_current_vendor_backend_dirs(available_vendor_dirs: set[str]) -> set[str
         raise RuntimeError(
             "Failed to detect current vendor backend from current_platform."
         ) from exc
-
 
 def _register_vendor_backends(registry: OpRegistry) -> None:
     """

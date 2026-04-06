@@ -10,7 +10,6 @@ from flag_gems.runtime import backend
 
 _OP_CONFIG: Optional[dict[str, str]] = None
 
-
 # Mapping used by dispatch registration to resolve the current runtime platform
 # into a backend directory under dispatch/backends/vendor.
 #
