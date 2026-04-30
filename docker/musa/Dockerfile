@@ -36,21 +36,32 @@ RUN pip install \
         decorator \
         soundfile \
         librosa \
-        modelscope>=1.18.1 \
+        "modelscope>=1.18.1" \
         -i ${INDEX_URL}
 
-# Pre-download vLLM test audio assets
+# Pre-download vLLM test audio assets to both root and github home
+# to ensure availability in CI and local dev environments
 RUN mkdir -p /root/.cache/vllm/assets/vllm_public_assets \
     && curl -fSL -o /root/.cache/vllm/assets/vllm_public_assets/mary_had_lamb.ogg \
         https://vllm-public-assets.s3.us-west-2.amazonaws.com/multimodal_asset/mary_had_lamb.ogg \
     && curl -fSL -o /root/.cache/vllm/assets/vllm_public_assets/winning_call.ogg \
-        https://vllm-public-assets.s3.us-west-2.amazonaws.com/multimodal_asset/winning_call.ogg
+        https://vllm-public-assets.s3.us-west-2.amazonaws.com/multimodal_asset/winning_call.ogg \
+    && mkdir -p /github/home/.cache/vllm/assets/vllm_public_assets \
+    && ln -s /root/.cache/vllm/assets/vllm_public_assets/mary_had_lamb.ogg \
+        /github/home/.cache/vllm/assets/vllm_public_assets/mary_had_lamb.ogg \
+    && ln -s /root/.cache/vllm/assets/vllm_public_assets/winning_call.ogg \
+        /github/home/.cache/vllm/assets/vllm_public_assets/winning_call.ogg
 
 # Set environment variables for vLLM and MUSA
+# TORCH_COMPILE_DISABLE: torch_musa's inductor backend registration is
+# incompatible with PyTorch 2.7.1 (make_fallback assertion on ops that
+# already have decompositions). Since MUSA uses enforce_eager, inductor
+# is not needed.
 ENV VLLM_PLUGINS=fl \
     USE_FLAGGEMS=1 \
     FLAGCX_PATH=/workspace/FlagCX \
-    MTHREADS_VISIBLE_DEVICES=all
+    MTHREADS_VISIBLE_DEVICES=all \
+    TORCH_COMPILE_DISABLE=1
 
 WORKDIR /workspace
 
