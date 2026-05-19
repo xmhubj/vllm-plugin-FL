@@ -174,21 +174,41 @@ class TestGetFlagGemsWhitelistBlacklist:
             get_flag_gems_whitelist_blacklist()
 
 
+_FLAGGEMS_ENABLED_ENV = {
+    "VLLM_FL_PREFER_ENABLED": "True",
+    "VLLM_FL_PREFER": "flagos",
+    "USE_FLAGGEMS": "true",
+}
+
+
 class TestUseFlaggemsOp:
     def test_op_in_whitelist(self):
-        with patch.dict(os.environ, {"VLLM_FL_FLAGOS_WHITELIST": "silu,rms_norm"}):
+        with patch.dict(
+            os.environ,
+            {**_FLAGGEMS_ENABLED_ENV, "VLLM_FL_FLAGOS_WHITELIST": "silu,rms_norm"},
+        ):
             os.environ.pop("VLLM_FL_FLAGOS_BLACKLIST", None)
             assert use_flaggems_op("silu") is True
             assert use_flaggems_op("fused_moe") is False
 
     def test_op_in_blacklist(self):
-        with patch.dict(os.environ, {"VLLM_FL_FLAGOS_BLACKLIST": "fused_moe"}):
+        with patch.dict(
+            os.environ,
+            {**_FLAGGEMS_ENABLED_ENV, "VLLM_FL_FLAGOS_BLACKLIST": "fused_moe"},
+        ):
             os.environ.pop("VLLM_FL_FLAGOS_WHITELIST", None)
             assert use_flaggems_op("fused_moe") is False
             assert use_flaggems_op("silu") is True
 
     def test_no_lists_returns_default(self):
-        with patch.dict(os.environ, {}, clear=False):
+        with (
+            patch.dict(
+                os.environ,
+                {"VLLM_FL_PREFER_ENABLED": "True", "VLLM_FL_PREFER": "flagos"},
+            ),
+            patch("vllm_fl.dispatch.config.get_flagos_blacklist", return_value=None),
+        ):
+            os.environ.pop("USE_FLAGGEMS", None)
             os.environ.pop("VLLM_FL_FLAGOS_WHITELIST", None)
             os.environ.pop("VLLM_FL_FLAGOS_BLACKLIST", None)
             assert use_flaggems_op("silu") is True
